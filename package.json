@@ -10,7 +10,7 @@
 		"sveltekit:generate": "svelte-kit sync",
 		"api:generate": "svetch.ts",
 		"prisma:generate": "prisma generate",
-		"prisma:migrate": "prisma migrate",
+		"prisma:migrate": "prisma migrate dev",
 		"prisma:migrate:ci": "prisma migrate deploy",
 		"test": "npm run test:integration && npm run test:unit",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
@@ -54,6 +54,8 @@
 		"svelte-preprocess"
 	],
 	"dependencies": {
+		"@lucia-auth/adapter-prisma": "^4.0.1",
+		"@node-rs/argon2": "^1.8.3",
 		"@prisma/client": "^5.13.0",
 		"dayjs": "^1.11.11",
 		"javascript-time-ago": "^2.5.10",
