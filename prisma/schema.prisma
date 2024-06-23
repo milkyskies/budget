@@ -13,32 +13,52 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Message {
-  id        String   @id @default(cuid()) @map("id")
+model User {
+  id        Int      @id @default(autoincrement()) @map("id")
+  email     String   @unique @map("email")
+  password  String   @map("password")
+  budgets   Budget[]
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  role    MessageRole @default(ASSISTANT) @map("role")
-  content String      @map("content")
-  Chat    Chat        @relation(fields: [chatId], references: [id])
-  chatId  String      @map("chat_id")
-
-  @@map("messages")
+  @@map("users")
 }
 
-enum MessageRole {
-  ASSISTANT
-  USER
-  SYSTEM
+model Budget {
+  id         Int        @id @default(autoincrement()) @map("id")
+  name       String     @map("name")
+  userId     Int        @map("user_id")
+  user       User       @relation(fields: [userId], references: [id])
+  categories Category[]
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
+
+  @@map("budgets")
 }
 
-model Chat {
-  id        String   @id @default(cuid()) @map("id")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+model Category {
+  id              Int           @id @default(autoincrement()) @map("id")
+  name            String        @map("name")
+  budgetId        Int           @map("budget_id")
+  budget          Budget        @relation(fields: [budgetId], references: [id])
+  transactions    Transaction[]
+  allocatedAmount Float         @map("allocated_amount")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
 
-  title    String?   @map("title")
-  messages Message[]
+  @@map("categories")
+}
 
-  @@map("chats")
+model Transaction {
+  id         Int      @id @default(autoincrement()) @map("id")
+  amount     Float    @map("amount")
+  date       DateTime @map("date")
+  payee      String   @map("payee")
+  memo       String?  @map("memo")
+  categoryId Int      @map("category_id")
+  category   Category @relation(fields: [categoryId], references: [id])
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("transactions")
 }
