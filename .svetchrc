@@ -1,0 +1,12 @@
+{
+	"framework": "sveltekit",
+	"input": "src/routes/api",
+	"out": "src/lib/app/api/.generated",
+	"docs": "/docs/api",
+	"staticFolder": "static",
+	"tsconfig": "tsconfig.json",
+	"logLevel": 5,
+	"filter": null,
+	"telemetry": true,
+	"zod": false
+}
