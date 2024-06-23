@@ -1,119 +1,62 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { BudgetEntity } from 'src/lib/domain/entity/budget.entity';
+	import type { PageServerData } from './$types';
 
-	// Define types
-	type Subcategory = {
-		id: string;
-		name: string;
-		assigned: number;
-		activity: number;
-		available: number;
-	};
+	export let data: PageServerData;
 
-	type Category = {
-		id: string;
-		name: string;
-		assigned: number;
-		activity: number;
-		available: number;
-		subcategories: Subcategory[];
-	};
+	const budget = BudgetEntity.create(data.budget);
 
 	// Use regular variables instead of stores
-	let currentBudget = "Ryan's Budget";
 	let currentMonth = 'Jun 2024';
-	let readyToAssign = 52903;
-	let categories: Category[] = [];
+	let readyToAssign = budget.accounts.reduce((sum, account) => sum + account.balance, 0);
+	let categoryGroups = budget.categoryGroups;
 	let selectedTab = 'All';
 	let availableInJune = 217272;
+	let accounts = budget.accounts;
 
-	// Mock API functions
-	async function fetchCategories(): Promise<Category[]> {
-		// Simulating API delay
-		await new Promise((resolve) => setTimeout(resolve, 500));
+	// async function updateCategory(
+	// 	categoryGroupId: string,
+	// 	categoryId: string,
+	// 	amount: number
+	// ): Promise<void> {
+	// 	// Simulating API delay
+	// 	await new Promise((resolve) => setTimeout(resolve, 300));
 
-		// API call comment
-		// const fetchedCategories = await apiClient.getCategories();
+	// 	// API call comment
+	// 	// await apiClient.updateCategory(categoryGroupId, categoryId, amount);
 
-		// Mock data
-		return [
-			{
-				id: '1',
-				name: 'Credit Card Payments',
-				assigned: 136838,
-				activity: 0,
-				available: 136838,
-				subcategories: [
-					{ id: '1-1', name: '楽天カード', assigned: 136838, activity: 0, available: 136838 }
-				]
-			},
-			{
-				id: '2',
-				name: 'Bills',
-				assigned: 74434,
-				activity: 0,
-				available: 74434,
-				subcategories: [
-					{ id: '2-1', name: 'Rent', assigned: 74434, activity: 0, available: 74434 },
-					{ id: '2-2', name: 'Utilities', assigned: 0, activity: 0, available: 0 },
-					{ id: '2-3', name: "Renter's insurance", assigned: 0, activity: 0, available: 0 },
-					{ id: '2-4', name: 'Phone', assigned: 0, activity: 0, available: 0 },
-					{ id: '2-5', name: 'Music', assigned: 0, activity: 0, available: 0 }
-				]
-			}
-			// ... (other categories)
-		];
-	}
+	// 	// Mock update logic
+	// 	categoryGroups = categoryGroups.map((group) => {
+	// 		if (group.id === categoryGroupId) {
+	// 			const updatedCategories = group.categories.map((cat) => {
+	// 				if (cat.id === categoryId) {
+	// 					return {
+	// 						...cat,
+	// 						assigned: cat.assigned + amount,
+	// 						available: cat.available + amount
+	// 					};
+	// 				}
 
-	async function updateCategory(
-		categoryId: string,
-		subcategoryId: string,
-		amount: number
-	): Promise<void> {
-		// Simulating API delay
-		await new Promise((resolve) => setTimeout(resolve, 300));
+	// 				return cat;
+	// 			});
 
-		// API call comment
-		// await apiClient.updateCategory(categoryId, subcategoryId, amount);
+	// 			const totalAssigned = updatedCategories.reduce((sum, cat) => sum + cat.assigned, 0);
+	// 			const totalAvailable = updatedCategories.reduce((sum, cat) => sum + cat.available, 0);
 
-		// Mock update logic
-		categories = categories.map((cat) => {
-			if (cat.id === categoryId) {
-				const updatedSubcategories = cat.subcategories.map((subcat) => {
-					if (subcat.id === subcategoryId) {
-						return {
-							...subcat,
-							assigned: subcat.assigned + amount,
-							available: subcat.available + amount
-						};
-					}
+	// 			return {
+	// 				...group,
+	// 				assigned: totalAssigned,
+	// 				available: totalAvailable,
+	// 				categories: updatedCategories
+	// 			};
+	// 		}
 
-					return subcat;
-				});
+	// 		return group;
+	// 	});
 
-				const totalAssigned = updatedSubcategories.reduce(
-					(sum, subcat) => sum + subcat.assigned,
-					0
-				);
-				const totalAvailable = updatedSubcategories.reduce(
-					(sum, subcat) => sum + subcat.available,
-					0
-				);
-
-				return {
-					...cat,
-					assigned: totalAssigned,
-					available: totalAvailable,
-					subcategories: updatedSubcategories
-				};
-			}
-
-			return cat;
-		});
-
-		readyToAssign -= amount;
-		availableInJune += amount;
-	}
+	// 	readyToAssign -= amount;
+	// 	availableInJune += amount;
+	// }
 
 	function formatCurrency(amount: number) {
 		return new Intl.NumberFormat('ja-JP', {
@@ -123,19 +66,19 @@
 		}).format(amount);
 	}
 
-	function handleAssign(categoryId: string, subcategoryId: string, currentAssigned: number) {
-		const input = prompt('Enter amount to assign:', currentAssigned.toString());
+	// function handleAssign(categoryGroupId: string, categoryId: string, currentAssigned: number) {
+	// 	const input = prompt('Enter amount to assign:', currentAssigned.toString());
 
-		if (input !== null) {
-			const amount = parseFloat(input);
+	// 	if (input !== null) {
+	// 		const amount = parseFloat(input);
 
-			if (!isNaN(amount)) {
-				const difference = amount - currentAssigned;
+	// 		if (!isNaN(amount)) {
+	// 			const difference = amount - currentAssigned;
 
-				updateCategory(categoryId, subcategoryId, difference);
-			}
-		}
-	}
+	// 			updateCategory(categoryGroupId, categoryId, difference);
+	// 		}
+	// 	}
+	// }
 
 	function changeMonth(direction: 'prev' | 'next') {
 		const [month, year] = currentMonth.split(' ');
@@ -150,34 +93,21 @@
 		// Update relevant data with newMonthData
 	}
 
-	async function handleQuickBudget(action: string) {
-		// API call comment
-		// const updatedBudget = await apiClient.quickBudget(action);
+	// async function handleQuickBudget(action: string) {
+	// 	// API call comment
+	// 	// const updatedBudget = await apiClient.quickBudget(action);
 
-		// Mock implementation
-		alert(`Quick budget action: {action}`);
-		// You would update the budget based on the selected action here
-	}
-
-	onMount(async () => {
-		// API call comment
-		// const initialData = await apiClient.getInitialData();
-		// currentBudget = initialData.currentBudget;
-		// currentMonth = initialData.currentMonth;
-		// readyToAssign = initialData.readyToAssign;
-		// availableInJune = initialData.availableInJune;
-
-		const fetchedCategories = await fetchCategories();
-
-		categories = fetchedCategories;
-	});
+	// 	// Mock implementation
+	// 	alert(`Quick budget action: {action}`);
+	// 	// You would update the budget based on the selected action here
+	// }
 </script>
 
 <main class="bg-gray-100 min-h-screen flex">
 	<!-- Sidebar -->
 	<aside class="w-64 bg-[#2c3d53] text-white p-4">
 		<div class="mb-8">
-			<h1 class="text-xl font-bold">{currentBudget}</h1>
+			<h1 class="text-xl font-bold">{budget.name}</h1>
 			<p class="text-sm text-gray-400">cr.heisei12@gmail.com</p>
 		</div>
 		<nav>
@@ -267,25 +197,30 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each categories as category}
+					{#each categoryGroups as categoryGroup}
 						<tr class="border-t">
-							<td class="py-2 px-4 font-medium">{category.name}</td>
-							<td class="py-2 px-4 text-right">{formatCurrency(category.assigned)}</td>
-							<td class="py-2 px-4 text-right">{formatCurrency(category.activity)}</td>
-							<td class="py-2 px-4 text-right">{formatCurrency(category.available)}</td>
+							<td class="py-2 px-4 font-medium">{categoryGroup.name}</td>
+							<td class="py-2 px-4 text-right"
+								>{formatCurrency(categoryGroup.totalAssignedAmount)}</td
+							>
+							<td class="py-2 px-4 text-right">{formatCurrency(categoryGroup.activity)}</td>
+							<td class="py-2 px-4 text-right"
+								>{formatCurrency(categoryGroup.totalAssignedAmount - categoryGroup.activity)}</td
+							>
 						</tr>
-						{#each category.subcategories as subcategory}
+						{#each categoryGroup.categories as category}
 							<tr class="bg-gray-50">
-								<td class="py-2 px-4 pl-8">{subcategory.name}</td>
+								<td class="py-2 px-4 pl-8">{category.name}</td>
 								<td class="py-2 px-4 text-right">
 									<button
-										on:click={() => handleAssign(category.id, subcategory.id, subcategory.assigned)}
+										on:click={() => handleAssign(categoryGroup.id, category.id, category.assigned)}
 										class="text-blue-600 hover:underline"
-										>{formatCurrency(subcategory.assigned)}</button
+										>{formatCurrency(category.assignedAmount)}</button
 									>
 								</td>
-								<td class="py-2 px-4 text-right">{formatCurrency(subcategory.activity)}</td>
-								<td class="py-2 px-4 text-right">{formatCurrency(subcategory.available)}</td>
+								<td class="py-2 px-4 text-right">{formatCurrency(category.activity)}</td>
+								<td class="py-2 px-4 text-right">{formatCurrency(category - category.available)}</td
+								>
 							</tr>
 						{/each}
 					{/each}

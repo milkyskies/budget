@@ -37,40 +37,76 @@ model Session {
 }
 
 model Budget {
+  id             String          @id @default(uuid()) @map("id")
+  name           String          @map("name")
+  userId         String          @map("user_id")
+  user           User            @relation(fields: [userId], references: [id])
+  categoryGroups CategoryGroup[]
+  accounts       Account[]
+  payee          Payee[]
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+
+  @@map("budgets")
+}
+
+model CategoryGroup {
   id         String     @id @default(uuid()) @map("id")
   name       String     @map("name")
-  userId     String     @map("user_id")
-  user       User       @relation(fields: [userId], references: [id])
+  budgetId   String     @map("budget_id")
+  budget     Budget     @relation(fields: [budgetId], references: [id])
   categories Category[]
   createdAt  DateTime   @default(now()) @map("created_at")
   updatedAt  DateTime   @updatedAt @map("updated_at")
 
-  @@map("budgets")
+  @@map("category_groups")
 }
 
 model Category {
   id              String        @id @default(uuid()) @map("id")
   name            String        @map("name")
-  budgetId        String        @map("budget_id")
-  budget          Budget        @relation(fields: [budgetId], references: [id])
-  transactions    Transaction[]
-  allocatedAmount Float         @map("allocated_amount")
+  categoryGroupId String        @map("category_group_id")
+  categoryGroup   CategoryGroup @relation(fields: [categoryGroupId], references: [id])
+  assignedAmount  Int           @default(0) @map("assigned_amount")
   createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt       DateTime      @updatedAt @map("updated_at")
 
   @@map("categories")
 }
 
-model Transaction {
-  id         String   @id @default(uuid()) @map("id")
-  amount     Float    @map("amount")
-  date       DateTime @map("date")
-  payee      String   @map("payee")
-  memo       String   @map("memo")
-  categoryId String   @map("category_id")
-  category   Category @relation(fields: [categoryId], references: [id])
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+model Payee {
+  id        String   @id @default(uuid()) @map("id")
+  name      String   @map("name")
+  budgetId  String   @map("budget_id")
+  budget    Budget   @relation(fields: [budgetId], references: [id])
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  Entry     Entry[]
 
-  @@map("transactions")
+  @@map("payees")
+}
+
+model Entry {
+  id        String   @id @default(uuid()) @map("id")
+  amount    Float    @map("amount")
+  date      DateTime @map("date")
+  payeeId   String?  @map("payee_id")
+  payee     Payee?   @relation(fields: [payeeId], references: [id])
+  memo      String   @map("memo")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("entries")
+}
+
+model Account {
+  id        String   @id @default(uuid()) @map("id")
+  name      String   @map("name")
+  balance   Float    @map("balance")
+  budgetId  String   @map("budget_id")
+  budget    Budget   @relation(fields: [budgetId], references: [id])
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("accounts")
 }
