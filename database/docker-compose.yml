@@ -3,15 +3,15 @@ version: '3.8'
 services:
   db:
     image: postgres:13
-    container_name: sample_chatbot_db
+    container_name: budget_db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: GxugtMqx8Cmv0mI
-      POSTGRES_DB: sample_chatbot
+      POSTGRES_DB: budget
     ports:
       - '5432:5432'
     volumes:
-      - sample_chatbot_db_volume:/var/lib/postgresql/data
+      - budget_db_volume:/var/lib/postgresql/data
 
 volumes:
-  sample_chatbot_db_volume:
+  budget_db_volume:
