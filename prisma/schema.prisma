@@ -14,20 +14,32 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement()) @map("id")
-  email     String   @unique @map("email")
-  password  String   @map("password")
-  budgets   Budget[]
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id           String    @id @default(uuid()) @map("id")
+  email        String    @unique @map("email")
+  passwordHash String    @map("password_hash")
+  budgets      Budget[]
+  sessions     Session[]
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
 
   @@map("users")
 }
 
+model Session {
+  id        String    @id @default(uuid()) @map("id")
+  userId    String    @map("user_id")
+  expiresAt DateTime? @map("expires_at")
+  user      User      @relation(fields: [userId], references: [id])
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@map("sessions")
+}
+
 model Budget {
-  id         Int        @id @default(autoincrement()) @map("id")
+  id         String     @id @default(uuid()) @map("id")
   name       String     @map("name")
-  userId     Int        @map("user_id")
+  userId     String     @map("user_id")
   user       User       @relation(fields: [userId], references: [id])
   categories Category[]
   createdAt  DateTime   @default(now()) @map("created_at")
@@ -37,9 +49,9 @@ model Budget {
 }
 
 model Category {
-  id              Int           @id @default(autoincrement()) @map("id")
+  id              String        @id @default(uuid()) @map("id")
   name            String        @map("name")
-  budgetId        Int           @map("budget_id")
+  budgetId        String        @map("budget_id")
   budget          Budget        @relation(fields: [budgetId], references: [id])
   transactions    Transaction[]
   allocatedAmount Float         @map("allocated_amount")
@@ -50,12 +62,12 @@ model Category {
 }
 
 model Transaction {
-  id         Int      @id @default(autoincrement()) @map("id")
+  id         String   @id @default(uuid()) @map("id")
   amount     Float    @map("amount")
   date       DateTime @map("date")
   payee      String   @map("payee")
-  memo       String?  @map("memo")
-  categoryId Int      @map("category_id")
+  memo       String   @map("memo")
+  categoryId String   @map("category_id")
   category   Category @relation(fields: [categoryId], references: [id])
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
