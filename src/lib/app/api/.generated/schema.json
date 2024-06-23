@@ -1,0 +1,110 @@
+{
+  "type": "object",
+  "properties": {
+    "api/chat": {
+      "type": "object",
+      "properties": {
+        "POST": {
+          "type": "object",
+          "properties": {
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "body": {
+                  "type": "object",
+                  "properties": {
+                    "newMessages": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "content": {
+                            "type": "string"
+                          },
+                          "role": {
+                            "enum": [
+                              "assistant",
+                              "system",
+                              "user"
+                            ],
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "chatId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "responses": {
+              "type": "object",
+              "properties": {
+                "200": {
+                  "type": "object",
+                  "properties": {
+                    "chat": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "messages": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "updatedAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "role": {
+                                "enum": [
+                                  "assistant",
+                                  "system",
+                                  "user"
+                                ],
+                                "type": "string"
+                              },
+                              "content": {
+                                "type": "string"
+                              },
+                              "chatId": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

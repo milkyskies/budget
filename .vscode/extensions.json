@@ -1,0 +1,14 @@
+{
+	"recommendations": [
+		"dbaeumer.vscode-eslint",
+		"svelte.svelte-vscode",
+		"esbenp.prettier-vscode",
+		"streetsidesoftware.code-spell-checker",
+		"mhutchie.git-graph",
+		"github.vscode-pull-request-github",
+		"bradlc.vscode-tailwindcss",
+		"shardulm94.trailing-spaces",
+		"byi8220.indented-block-highlighting",
+		"sirtori.indenticator"
+	]
+}
