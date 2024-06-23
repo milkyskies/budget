@@ -118,11 +118,11 @@
 		<div class="mt-4">
 			<h2 class="text-xs font-bold mb-2">BUDGET</h2>
 			<div class="flex justify-between items-center mb-1">
-				<span class="text-sm">関西みらい銀行</span>
+				<span class="text-sm">テスト銀行</span>
 				<span class="text-sm">¥270,175</span>
 			</div>
 			<div class="flex justify-between items-center">
-				<span class="text-sm">楽天カード</span>
+				<span class="text-sm">テストカード</span>
 				<span class="text-sm text-red-400">-¥136,838</span>
 			</div>
 		</div>
