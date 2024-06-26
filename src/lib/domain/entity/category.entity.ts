@@ -19,7 +19,7 @@ export class CategoryEntity {
 	public readonly assignedAmount: number;
 	public readonly createdAt: dayjs.Dayjs;
 	public readonly updatedAt: dayjs.Dayjs;
-	public readonly entries: EntryEntity[] | undefined;
+	public readonly entries?: EntryEntity[];
 
 	private constructor(args: CategoryValues) {
 		this.id = args.id;
@@ -63,8 +63,6 @@ export class CategoryEntity {
 	}
 
 	public get usedAmount(): number {
-		console.log(this.entries);
-
 		return this.entries?.reduce((acc, entry) => acc + entry.amount, 0) ?? 0;
 	}
 

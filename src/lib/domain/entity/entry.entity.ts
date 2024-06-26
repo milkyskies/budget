@@ -1,5 +1,6 @@
 import dayjs from '$lib/app/time/dayjs';
 import type { Entry as PrismaEntry } from '@prisma/client';
+import { CategoryEntity, type CategoryValues } from './category.entity';
 
 export type EntryValues = {
 	id: string;
@@ -8,6 +9,7 @@ export type EntryValues = {
 	payee: string;
 	memo: string;
 	categoryId: string;
+	category?: CategoryValues;
 	createdAt: Date;
 	updatedAt: Date;
 };
@@ -20,6 +22,7 @@ export class EntryEntity {
 	public readonly payee: string;
 	public readonly memo: string;
 	public readonly categoryId: string;
+	public readonly category?: CategoryEntity;
 	public readonly createdAt: dayjs.Dayjs;
 	public readonly updatedAt: dayjs.Dayjs;
 
@@ -32,13 +35,14 @@ export class EntryEntity {
 		this.categoryId = args.categoryId;
 		this.createdAt = dayjs(args.createdAt);
 		this.updatedAt = dayjs(args.updatedAt);
+		this.category = args.category ? CategoryEntity.create(args.category) : undefined;
 	}
 
 	public static create(args: EntryValues): EntryEntity {
 		return new EntryEntity(args);
 	}
 
-	public static fromPrisma(args: { entry: PrismaEntry }): EntryEntity {
+	public static fromPrisma(args: { entry: PrismaEntry; category?: CategoryValues }): EntryEntity {
 		return EntryEntity.create({
 			id: args.entry.id,
 			amount: args.entry.amount,
@@ -47,7 +51,8 @@ export class EntryEntity {
 			memo: args.entry.memo,
 			categoryId: args.entry.categoryId,
 			createdAt: args.entry.createdAt,
-			updatedAt: args.entry.updatedAt
+			updatedAt: args.entry.updatedAt,
+			category: args.category
 		});
 	}
 
@@ -60,7 +65,8 @@ export class EntryEntity {
 			memo: this.memo,
 			categoryId: this.categoryId,
 			createdAt: this.createdAt.toDate(),
-			updatedAt: this.updatedAt.toDate()
+			updatedAt: this.updatedAt.toDate(),
+			category: this.category?.toValues()
 		};
 	}
 }
