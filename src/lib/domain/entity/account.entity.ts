@@ -1,5 +1,5 @@
+import dayjs from '$lib/app/time/dayjs';
 import type { Account as PrismaAccount } from '@prisma/client';
-import dayjs from 'dayjs';
 
 export type AccountValues = {
 	id: string;

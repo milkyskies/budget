@@ -1,5 +1,5 @@
+import dayjs from '$lib/app/time/dayjs';
 import type { CategoryGroup as PrismaCategoryGroup } from '@prisma/client';
-import dayjs from 'dayjs';
 import { CategoryEntity, type CategoryValues } from './category.entity';
 
 export type CategoryGroupValues = {
@@ -59,5 +59,13 @@ export class CategoryGroupEntity {
 
 	public get totalAssignedAmount(): number {
 		return this.categories.reduce((sum, category) => sum + category.assignedAmount, 0);
+	}
+
+	public get totalUsedAmount(): number {
+		return this.categories.reduce((sum, category) => sum + category.usedAmount, 0);
+	}
+
+	public get totalRemainingAmount(): number {
+		return this.totalAssignedAmount - this.totalUsedAmount;
 	}
 }

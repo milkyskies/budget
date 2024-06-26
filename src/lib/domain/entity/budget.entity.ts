@@ -1,5 +1,5 @@
+import dayjs from '$lib/app/time/dayjs';
 import type { Budget as PrismaBudget } from '@prisma/client';
-import dayjs from 'dayjs';
 import { AccountEntity, type AccountValues } from './account.entity';
 import { CategoryGroupEntity, type CategoryGroupValues } from './category-group.entity';
 

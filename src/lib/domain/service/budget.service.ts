@@ -1,3 +1,4 @@
+import dayjs from '$lib/app/time/dayjs';
 import { PrismaClient } from '@prisma/client';
 import { AccountEntity } from '../entity/account.entity';
 import { BudgetEntity } from '../entity/budget.entity';
@@ -5,18 +6,24 @@ import { CategoryGroupEntity } from '../entity/category-group.entity';
 import { CategoryEntity } from '../entity/category.entity';
 
 export class BudgetService {
-	private constructor(private readonly prismaClient: PrismaClient) {}
+	constructor(private readonly prismaClient: PrismaClient) {}
 
-	public static create(prismaClient: PrismaClient): BudgetService {
+	public static new(prismaClient: PrismaClient): BudgetService {
 		return new BudgetService(prismaClient);
 	}
 
-	public async getFirstBudget(args: { userId: string }): Promise<BudgetEntity | undefined> {
+	public async getBudgetFromMonth(args: {
+		userId: string;
+		month: dayjs.Dayjs;
+	}): Promise<BudgetEntity | undefined> {
 		const budget = await this.prismaClient.budget.findFirst({
 			where: {
-				userId: args.userId
+				userId: args.userId,
+				createdAt: {
+					gte: args.month.startOf('month').toDate(),
+					lt: args.month.endOf('month').toDate()
+				}
 			},
-			take: 1,
 			orderBy: {
 				createdAt: 'desc'
 			},
@@ -64,23 +71,17 @@ export class BudgetService {
 				categoryGroups: {
 					create: [
 						{
-							name: 'Essential Expenses',
+							name: '固定費',
 							categories: {
-								create: [{ name: 'Housing' }, { name: 'Utilities' }, { name: 'Groceries' }]
+								create: [{ name: '住宅' }, { name: '電気料金' }, { name: '水道料金' }]
 							}
 						},
 						{
-							name: 'Discretionary Spending',
+							name: '変動費',
 							categories: {
-								create: [{ name: 'Entertainment' }, { name: 'Dining Out' }, { name: 'Shopping' }]
+								create: [{ name: '食費' }, { name: '趣味' }, { name: 'その他' }]
 							}
 						}
-					]
-				},
-				accounts: {
-					create: [
-						{ name: 'Checking Account', balance: 0 },
-						{ name: 'Savings Account', balance: 0 }
 					]
 				}
 			},
@@ -116,42 +117,5 @@ export class BudgetService {
 			categoryGroups: categoryGroups.map((categoryGroup) => categoryGroup.toValues()),
 			accounts: accounts.map((account) => account.toValues())
 		});
-	}
-
-	// TODO: support multiple budgets
-	public async getBudgets(): Promise<BudgetEntity[]> {
-		const budgets = await this.prismaClient.budget.findMany({
-			include: {
-				categoryGroups: {
-					include: {
-						categories: true
-					}
-				},
-				accounts: true
-			}
-		});
-
-		const budgetsEntities = budgets.map((budget) => {
-			const categoryGroups = budget.categoryGroups.map((categoryGroup) => {
-				const categories = categoryGroup.categories.map((category) =>
-					CategoryEntity.fromPrisma({ category })
-				);
-
-				return CategoryGroupEntity.fromPrisma({
-					categoryGroup,
-					categories: categories.map((category) => category.toValues())
-				});
-			});
-
-			const accounts = budget.accounts.map((account) => AccountEntity.fromPrisma(account));
-
-			return BudgetEntity.fromPrisma({
-				budget,
-				categoryGroups: categoryGroups.map((categoryGroup) => categoryGroup.toValues()),
-				accounts: accounts.map((account) => account.toValues())
-			});
-		});
-
-		return budgetsEntities;
 	}
 }

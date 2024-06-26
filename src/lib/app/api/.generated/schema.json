@@ -1,7 +1,7 @@
 {
   "type": "object",
   "properties": {
-    "api/chat": {
+    "api/accounts/post": {
       "type": "object",
       "properties": {
         "POST": {
@@ -13,26 +13,22 @@
                 "body": {
                   "type": "object",
                   "properties": {
-                    "newMessages": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "content": {
-                            "type": "string"
-                          },
-                          "role": {
-                            "enum": [
-                              "assistant",
-                              "system",
-                              "user"
-                            ],
-                            "type": "string"
-                          }
-                        }
-                      }
+                    "name": {
+                      "type": "string"
                     },
-                    "chatId": {
+                    "type": {
+                      "enum": [
+                        "CASH",
+                        "CHECKING",
+                        "CREDIT_CARD",
+                        "SAVINGS"
+                      ],
+                      "type": "string"
+                    },
+                    "balance": {
+                      "type": "number"
+                    },
+                    "budgetId": {
                       "type": "string"
                     }
                   }
@@ -45,57 +41,25 @@
                 "200": {
                   "type": "object",
                   "properties": {
-                    "chat": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "createdAt": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "updatedAt": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "title": {
-                          "type": "string"
-                        },
-                        "messages": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "type": "string"
-                              },
-                              "createdAt": {
-                                "type": "string",
-                                "format": "date-time"
-                              },
-                              "updatedAt": {
-                                "type": "string",
-                                "format": "date-time"
-                              },
-                              "role": {
-                                "enum": [
-                                  "assistant",
-                                  "system",
-                                  "user"
-                                ],
-                                "type": "string"
-                              },
-                              "content": {
-                                "type": "string"
-                              },
-                              "chatId": {
-                                "type": "string"
-                              }
-                            }
-                          }
-                        }
-                      }
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "balance": {
+                      "type": "number"
+                    },
+                    "budgetId": {
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "format": "date-time"
                     }
                   }
                 }
