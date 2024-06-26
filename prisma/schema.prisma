@@ -14,7 +14,7 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(uuid()) @map("id")
+  id           String    @id @default(cuid()) @map("id")
   email        String    @unique @map("email")
   passwordHash String    @map("password_hash")
   budgets      Budget[]
@@ -26,7 +26,7 @@ model User {
 }
 
 model Session {
-  id        String    @id @default(uuid()) @map("id")
+  id        String    @id @default(cuid()) @map("id")
   userId    String    @map("user_id")
   expiresAt DateTime? @map("expires_at")
   user      User      @relation(fields: [userId], references: [id])
@@ -37,21 +37,21 @@ model Session {
 }
 
 model Budget {
-  id             String          @id @default(uuid()) @map("id")
+  id             String          @id @default(cuid()) @map("id")
   name           String          @map("name")
   userId         String          @map("user_id")
   user           User            @relation(fields: [userId], references: [id])
   categoryGroups CategoryGroup[]
   accounts       Account[]
-  payee          Payee[]
-  createdAt      DateTime        @default(now()) @map("created_at")
-  updatedAt      DateTime        @updatedAt @map("updated_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("budgets")
 }
 
 model CategoryGroup {
-  id         String     @id @default(uuid()) @map("id")
+  id         String     @id @default(cuid()) @map("id")
   name       String     @map("name")
   budgetId   String     @map("budget_id")
   budget     Budget     @relation(fields: [budgetId], references: [id])
@@ -63,7 +63,7 @@ model CategoryGroup {
 }
 
 model Category {
-  id              String        @id @default(uuid()) @map("id")
+  id              String        @id @default(cuid()) @map("id")
   name            String        @map("name")
   categoryGroupId String        @map("category_group_id")
   categoryGroup   CategoryGroup @relation(fields: [categoryGroupId], references: [id])
@@ -75,31 +75,48 @@ model Category {
   @@map("categories")
 }
 
-model Payee {
-  id        String   @id @default(uuid()) @map("id")
-  name      String   @map("name")
-  budgetId  String   @map("budget_id")
-  budget    Budget   @relation(fields: [budgetId], references: [id])
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  Entry     Entry[]
-
-  @@map("payees")
+enum EntryType {
+  INCOME
+  EXPENSE
+  TRANSFER
 }
 
+// Always from the perspective of the account
 model Entry {
-  id         String   @id @default(uuid()) @map("id")
-  amount     Float    @map("amount")
-  date       DateTime @map("date")
-  payeeId    String?  @map("payee_id")
-  payee      Payee?   @relation(fields: [payeeId], references: [id])
-  memo       String   @map("memo")
-  categoryId String   @map("category_id")
-  category   Category @relation(fields: [categoryId], references: [id])
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+  id String @id @default(cuid()) @map("id")
+
+  amount          Float     @map("amount")
+  type            EntryType @map("type")
+  date            DateTime  @map("date")
+  memo            String    @map("memo")
+  transactionDate DateTime  @map("transaction_date")
+
+  primaryAccountId     String  @map("primary_account_id")
+  destinationAccountId String? @map("destination_account_id") // For transfers
+  externalPartyId      String? @map("external_party_id") // For income and expenses
+  categoryId           String? @map("category_id")
+
+  primaryAccount     Account        @relation("PrimaryAccount", fields: [primaryAccountId], references: [id])
+  destinationAccount Account?       @relation("DestinationAccount", fields: [destinationAccountId], references: [id])
+  externalParty      ExternalParty? @relation(fields: [externalPartyId], references: [id])
+  category           Category?      @relation(fields: [categoryId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("entries")
+}
+
+model ExternalParty {
+  id   String @id @default(cuid()) @map("id")
+  name String @map("name")
+
+  entries Entry[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("external_parties")
 }
 
 enum AccountType {
@@ -110,14 +127,19 @@ enum AccountType {
 }
 
 model Account {
-  id        String      @id @default(uuid()) @map("id")
-  name      String      @map("name")
-  balance   Float       @map("balance")
-  budgetId  String      @map("budget_id")
-  type      AccountType @map("type")
-  budget    Budget      @relation(fields: [budgetId], references: [id])
-  createdAt DateTime    @default(now()) @map("created_at")
-  updatedAt DateTime    @updatedAt @map("updated_at")
+  id      String      @id @default(cuid()) @map("id")
+  name    String      @map("name")
+  balance Float       @map("balance")
+  type    AccountType @map("type")
+  budget  Budget      @relation(fields: [budgetId], references: [id])
+
+  budgetId String @map("budget_id")
+
+  entries          Entry[] @relation("PrimaryAccount") // Entries that are transferring from this account
+  receivingEntries Entry[] @relation("DestinationAccount") // Entries that are transferring to this account
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("accounts")
 }

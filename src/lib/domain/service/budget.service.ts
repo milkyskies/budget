@@ -123,4 +123,25 @@ export class BudgetService {
 			accounts: accounts.map((account) => account.toValues())
 		});
 	}
+
+	public async getEntries(args: { budgetId: string }): Promise<EntryEntity[]> {
+		const entries = await this.prismaClient.entry.findMany({
+			where: {
+				category: {
+					categoryGroup: {
+						budgetId: args.budgetId
+					}
+				}
+			},
+			include: {
+				category: true,
+				payee: true
+			},
+			orderBy: {
+				date: 'desc'
+			}
+		});
+
+		return entries.map((entry) => EntryEntity.fromPrisma({ entry, category: entry.category }));
+	}
 }

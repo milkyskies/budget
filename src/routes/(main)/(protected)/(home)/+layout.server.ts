@@ -1,9 +1,9 @@
 import dayjs from '$lib/app/time/dayjs';
 import { PrismaClient } from '@prisma/client';
 import { BudgetService } from 'src/lib/domain/service/budget.service';
-import type { PageServerLoad } from './$types';
+import type { LayoutServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: LayoutServerLoad = async ({ locals }) => {
 	const prisma = new PrismaClient();
 	const budgetService = BudgetService.new(prisma);
 
