@@ -11,7 +11,7 @@
 
 	const budget = BudgetEntity.create(data.budget);
 
-	let readyToAssign = budget.accounts.reduce((sum, account) => sum + account.balance, 0);
+	let readyToAssign = budget.monthlyAssignableAmount;
 	let categoryGroups = budget.categoryGroups;
 	let availableInJune = 217272;
 	let accounts = budget.accounts;
@@ -56,6 +56,10 @@
 
 		accounts = [...accounts, newAccount];
 	}
+
+	function formatUsedAmount(amount: number) {
+		return amount > 0 ? `-${formatCurrency(amount)}` : formatCurrency(amount);
+	}
 </script>
 
 <main class="bg-gray-100 min-h-screen flex">
@@ -68,10 +72,10 @@
 		<nav>
 			<a href="#" class="block py-2 px-4 bg-[#394b61] rounded mb-1">予算</a>
 			<a href="#" class="block py-2 px-4 hover:bg-[#394b61] rounded mb-1">レポート</a>
-			<a href="#" class="block py-2 px-4 hover:bg-[#394b61] rounded mb-1">すべてのアカウント</a>
+			<a href="#" class="block py-2 px-4 hover:bg-[#394b61] rounded mb-1">すべての口座</a>
 		</nav>
 		<div class="mt-4">
-			<h2 class="text-xs font-bold mb-2">予算</h2>
+			<h2 class="text-xs font-bold mb-2">口座</h2>
 			{#each accounts as account}
 				<div class="flex justify-between items-center mb-1">
 					<span class="text-sm">{account.name}</span>
@@ -83,7 +87,7 @@
 		</div>
 		<button
 			class="mt-4 text-sm text-blue-300 hover:underline"
-			on:click={() => (openModal = 'NEW_ACCOUNT')}>アカウントを追加</button
+			on:click={() => (openModal = 'NEW_ACCOUNT')}>口座を追加</button
 		>
 	</aside>
 
@@ -137,9 +141,9 @@
 				<thead class="bg-gray-50 text-gray-700">
 					<tr>
 						<th class="text-left py-2 px-4">カテゴリー</th>
-						<th class="text-right py-2 px-4">割り当て済み</th>
-						<th class="text-right py-2 px-4">活動</th>
-						<th class="text-right py-2 px-4">利用可能</th>
+						<th class="text-right py-2 px-4">割り当て金額</th>
+						<th class="text-right py-2 px-4">使った金額</th>
+						<th class="text-right py-2 px-4">残金</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -149,7 +153,8 @@
 							<td class="py-2 px-4 text-right"
 								>{formatCurrency(categoryGroup.totalAssignedAmount)}</td
 							>
-							<td class="py-2 px-4 text-right">{formatCurrency(categoryGroup.totalUsedAmount)}</td>
+							<td class="py-2 px-4 text-right">{formatUsedAmount(categoryGroup.totalUsedAmount)}</td
+							>
 							<td class="py-2 px-4 text-right"
 								>{formatCurrency(categoryGroup.totalRemainingAmount)}</td
 							>
@@ -162,7 +167,7 @@
 										>{formatCurrency(category.assignedAmount)}</button
 									>
 								</td>
-								<td class="py-2 px-4 text-right">{formatCurrency(category.usedAmount)}</td>
+								<td class="py-2 px-4 text-right">{formatUsedAmount(category.usedAmount)}</td>
 								<td class="py-2 px-4 text-right">{formatCurrency(category.remainingAmount)}</td>
 							</tr>
 						{/each}
@@ -188,7 +193,7 @@
 				<span>{formatCurrency(availableInJune)}</span>
 			</div>
 			<div class="flex justify-between">
-				<span class="text-gray-600">活動</span>
+				<span class="text-gray-600">使った金額</span>
 				<span>¥0</span>
 			</div>
 		</div>
@@ -196,10 +201,10 @@
 </main>
 <!-- New account modal -->
 <Modal open={openModal === 'NEW_ACCOUNT'}>
-	<h2 class="text-xl font-bold mb-4">新しいアカウントを追加</h2>
+	<h2 class="text-xl font-bold mb-4">新しい口座を追加</h2>
 	<form on:submit|preventDefault={addAccount}>
 		<div class="mb-4">
-			<label for="accountName" class="block text-sm font-medium mb-1">アカウント名</label>
+			<label for="accountName" class="block text-sm font-medium mb-1">名前</label>
 			<input
 				id="accountName"
 				type="text"
@@ -209,7 +214,7 @@
 			/>
 		</div>
 		<div class="mb-4">
-			<label for="accountType" class="block text-sm font-medium mb-1">アカウントタイプ</label>
+			<label for="accountType" class="block text-sm font-medium mb-1">種類</label>
 			<select
 				id="accountType"
 				bind:value={createAccountDto.type}

@@ -67,4 +67,26 @@ export class BudgetEntity {
 			updatedAt: this.updatedAt.toDate()
 		};
 	}
+
+	public get monthlyAssignedAmount(): number {
+		return this.categoryGroups.reduce(
+			(acc, categoryGroup) => acc + categoryGroup.totalAssignedAmount,
+			0
+		);
+	}
+
+	public get monthlyUsedAmount(): number {
+		return this.categoryGroups.reduce(
+			(acc, categoryGroup) => acc + categoryGroup.totalUsedAmount,
+			0
+		);
+	}
+
+	public get currentBalance(): number {
+		return this.accounts.reduce((sum, account) => sum + account.balance, 0);
+	}
+
+	public get monthlyAssignableAmount(): number {
+		return this.currentBalance - this.monthlyAssignedAmount;
+	}
 }

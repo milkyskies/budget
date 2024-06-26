@@ -12,7 +12,7 @@ export type EntryValues = {
 	updatedAt: Date;
 };
 
-// I originally wanted to use the word "transaction", but it's a keyword in DBs
+// I originally wanted to use the word "entry", but it's a keyword in DBs
 export class EntryEntity {
 	public readonly id: string;
 	public readonly amount: number;
@@ -38,16 +38,16 @@ export class EntryEntity {
 		return new EntryEntity(args);
 	}
 
-	public static fromPrisma(args: { transaction: PrismaEntry }): EntryEntity {
+	public static fromPrisma(args: { entry: PrismaEntry }): EntryEntity {
 		return EntryEntity.create({
-			id: args.transaction.id,
-			amount: args.transaction.amount,
-			date: args.transaction.date,
-			payee: args.transaction.payee,
-			memo: args.transaction.memo,
-			categoryId: args.transaction.categoryId,
-			createdAt: args.transaction.createdAt,
-			updatedAt: args.transaction.updatedAt
+			id: args.entry.id,
+			amount: args.entry.amount,
+			date: args.entry.date,
+			payee: args.entry.payeeId ?? '', // TODO
+			memo: args.entry.memo,
+			categoryId: args.entry.categoryId,
+			createdAt: args.entry.createdAt,
+			updatedAt: args.entry.updatedAt
 		});
 	}
 
