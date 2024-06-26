@@ -63,6 +63,8 @@ export class CategoryEntity {
 	}
 
 	public get usedAmount(): number {
+		console.log(this.entries);
+
 		return this.entries?.reduce((acc, entry) => acc + entry.amount, 0) ?? 0;
 	}
 

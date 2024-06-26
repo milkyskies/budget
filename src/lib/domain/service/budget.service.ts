@@ -4,6 +4,7 @@ import { AccountEntity } from '../entity/account.entity';
 import { BudgetEntity } from '../entity/budget.entity';
 import { CategoryGroupEntity } from '../entity/category-group.entity';
 import { CategoryEntity } from '../entity/category.entity';
+import { EntryEntity } from '../entity/entry.entity';
 
 export class BudgetService {
 	constructor(private readonly prismaClient: PrismaClient) {}
@@ -44,9 +45,13 @@ export class BudgetService {
 		if (!budget) return;
 
 		const categoryGroups = budget.categoryGroups.map((categoryGroup) => {
-			const categories = categoryGroup.categories.map((category) =>
-				CategoryEntity.fromPrisma({ category })
-			);
+			const categories = categoryGroup.categories.map((category) => {
+				const entries = category.entries.map((entry) =>
+					EntryEntity.fromPrisma({ entry }).toValues()
+				);
+
+				return CategoryEntity.fromPrisma({ category, entries });
+			});
 
 			return CategoryGroupEntity.fromPrisma({
 				categoryGroup,

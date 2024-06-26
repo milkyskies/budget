@@ -12,7 +12,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	let budget = await budgetService.getBudgetFromMonth({ userId: locals.user.id, month: dayjs() });
 
 	if (!budget) {
-		budget = await budgetService.createDefaultBudget({ name: 'Budget', userId: locals.user.id });
+		budget = await budgetService.createDefaultBudget({ name: '予算', userId: locals.user.id });
 	}
 
 	return {
