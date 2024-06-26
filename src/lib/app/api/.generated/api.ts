@@ -87,39 +87,26 @@ export type RecursiveJSONSchema = {
     required?: string[]
 }
 export interface APIPaths {
-  'api/chat': {
+  'api/accounts/post': {
     POST: {
       parameters: {
         path?: never,
         body: {
-  newMessages: Array<
-    {
-      content: string;
-      role: 'assistant' | 'user' | 'system';
-    }
-  >;
-  chatId: string;
+  name: string;
+  type: 'CASH' | 'CHECKING' | 'SAVINGS' | 'CREDIT_CARD';
+  balance: number;
+  budgetId: string;
 },
         query?: never,
       },
       responses: {
         200: {
-  chat: {
-    id: string;
-    createdAt: Date;
-    updatedAt: Date;
-    title: string;
-    messages?: Array<
-      {
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
-        role: 'assistant' | 'user' | 'system';
-        content: string;
-        chatId: string;
-      }
-    >;
-  };
+  id: string;
+  name: string;
+  balance: number;
+  budgetId: string;
+  createdAt: Date;
+  updatedAt: Date;
 },
       }
     },

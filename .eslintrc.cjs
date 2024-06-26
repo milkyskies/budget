@@ -123,7 +123,18 @@ module.exports = {
 		'@typescript-eslint/no-unsafe-assignments': 'off',
 		'@typescript-eslint/no-unsafe-member-access': 'off',
 		'@typescript-eslint/no-unsafe-assignment': 'off',
-		'svelte/valid-compile': ['error', { ignoreWarnings: true }]
+		'svelte/valid-compile': ['error', { ignoreWarnings: true }],
+		'no-restricted-imports': [
+			'error',
+			{
+				paths: [
+					{
+						name: 'dayjs',
+						message: 'Please use the custom dayjs import from ./path/to/dayjsCustom instead.'
+					}
+				]
+			}
+		]
 	},
 	overrides: [
 		{

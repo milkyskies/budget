@@ -1,5 +1,5 @@
+import dayjs from '$lib/app/time/dayjs';
 import type { Entry as PrismaEntry } from '@prisma/client';
-import dayjs from 'dayjs';
 
 export type EntryValues = {
 	id: string;
@@ -12,6 +12,7 @@ export type EntryValues = {
 	updatedAt: Date;
 };
 
+// I originally wanted to use the word "transaction", but it's a keyword in DBs
 export class EntryEntity {
 	public readonly id: string;
 	public readonly amount: number;

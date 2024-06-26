@@ -1,7 +1,7 @@
 <script lang="ts">
 	// import AccountDropdownPc from '$lib/components/navigation/account-dropdown-pc.svelte';
-	import { navItems } from '$lib/app/view/navigation';
 	import { ChevronDownIcon } from 'lucide-svelte';
+	import { navItems } from 'src/lib/app/presentation/navigation';
 
 	// import HistoryItems from './history-items.svelte';
 </script>

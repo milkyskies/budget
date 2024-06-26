@@ -45,8 +45,12 @@ export const actions: Actions = {
 
 		// TODO: check if email is already used
 
-		const user = await prismaClient.user.create({
-			data: {
+		const user = await prismaClient.user.upsert({
+			where: {
+				email
+			},
+			update: {},
+			create: {
 				email,
 				passwordHash
 			}

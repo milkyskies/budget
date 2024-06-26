@@ -1,5 +1,5 @@
+import dayjs from '$lib/app/time/dayjs';
 import type { Category as PrismaCategory } from '@prisma/client';
-import dayjs from 'dayjs';
 import { EntryEntity, type EntryValues } from './entry.entity';
 
 export type CategoryValues = {
@@ -60,5 +60,13 @@ export class CategoryEntity {
 			updatedAt: this.updatedAt.toDate(),
 			entries: this.entries?.map((entry) => entry.toValues())
 		};
+	}
+
+	public get usedAmount(): number {
+		return this.entries?.reduce((acc, entry) => acc + entry.amount, 0) ?? 0;
+	}
+
+	public get remainingAmount(): number {
+		return this.assignedAmount - this.usedAmount;
 	}
 }
