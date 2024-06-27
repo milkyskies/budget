@@ -50,7 +50,7 @@
 		const response = await apiClient.put(`api/entries`, {
 			body: {
 				...args.entry,
-				id: editingEntry!.id
+				id: editingEntry?.id
 			}
 		});
 

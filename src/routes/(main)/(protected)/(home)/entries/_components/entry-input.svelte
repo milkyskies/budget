@@ -7,19 +7,21 @@
 	import type { UpsertEntryDto } from 'src/routes/api/entries/dto/upsert-entry.dto';
 	import { EntryType } from '@prisma/client';
 	import type { EntryEntity } from 'src/lib/domain/entity/entry.entity';
+	import type { EntryItemEntity } from 'src/lib/domain/entity/entry-item.entity';
 
 	export let categoryGroups: CategoryGroupEntity[];
 	export let accounts: AccountEntity[];
 	export let initialEntry: EntryEntity | undefined = undefined;
 	export let onSubmit: (entry: UpsertEntryDto) => Promise<void>;
 
-	let date = initialEntry?.date ?? new Date();
-	let amount = initialEntry?.amount ?? 0;
-	let selectedCategory: CategoryEntity | undefined = initialEntry?.category;
 	let memo = initialEntry?.memo ?? '';
 	let selectedAccount: AccountEntity | undefined = initialEntry
 		? accounts.find((a) => a.id === initialEntry.accountId)
 		: accounts[0] ?? undefined;
+
+	let entryItems: EntryItemEntity[] = initialEntry?.entryItems ?? [
+		{ amount: 0, categoryId: undefined }
+	];
 
 	let showCategoryPanel = false;
 
@@ -60,27 +62,52 @@
 <form on:submit|preventDefault={handleSubmit} class="space-y-4 pb-24">
 	<div>
 		<label for="amount" class="block text-sm font-medium mb-1 text-gray-700">金額</label>
-		<div class="relative">
-			<span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">¥</span>
-			<YenInput bind:value={amount} />
+	</div>
+	{#each entryItems as item, index}
+		<p class="block text-sm font-medium mb-1 text-gray-700">項目 {index + 1}</p>
+		<div class="flex items-center gap-2">
+			<div class="w-2/5">
+				<div class="relative">
+					<span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">¥</span>
+					<YenInput
+						value={item.amount}
+						on:input={(e) => updateEntryItem(index, 'amount', e.detail)}
+					/>
+				</div>
+			</div>
+			<div class="w-3/5">
+				<button
+					type="button"
+					class="w-full p-2 border border-gray-300 rounded-md shadow-sm bg-white cursor-pointer flex justify-between items-center"
+					on:click={() => (showCategoryPanel = true)}
+				>
+					<span class={item.categoryId ? 'text-gray-900' : 'text-gray-500'}>
+						{item.categoryId
+							? categoryGroups.flatMap((g) => g.categories).find((c) => c.id === item.categoryId)
+									?.name
+							: 'カテゴリーを選択'}
+					</span>
+					<svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M19 9l-7 7-7-7"
+						/>
+					</svg>
+				</button>
+			</div>
+			{#if index > 0}
+				<button
+					type="button"
+					class="text-red-600 hover:text-red-800"
+					on:click={() => removeEntryItem(index)}
+				>
+					削除
+				</button>
+			{/if}
 		</div>
-	</div>
-	<div>
-		<label for="category" class="block text-sm font-medium mb-1 text-gray-700">分類</label>
-		<button
-			id="category"
-			type="button"
-			class="w-full p-2 border border-gray-300 rounded-md shadow-sm bg-white cursor-pointer flex justify-between items-center"
-			on:click={() => (showCategoryPanel = true)}
-		>
-			<span class={selectedCategory ? 'text-gray-900' : 'text-gray-500'}>
-				{selectedCategory ? selectedCategory.name : 'カテゴリーを選択'}
-			</span>
-			<svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-			</svg>
-		</button>
-	</div>
+	{/each}
 
 	<div>
 		<label for="account" class="block text-sm font-medium mb-1 text-gray-700">資産</label>

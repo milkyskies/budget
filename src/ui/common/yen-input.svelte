@@ -30,7 +30,7 @@
 </script>
 
 <input
-	class="w-full p-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 {className}"
+	class="w-full p-2 pl-8 border border-gray-300 rounded-md shadow-sm {className}"
 	type="tel"
 	on:input={handleInput}
 	value={displayValue}

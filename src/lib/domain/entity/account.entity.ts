@@ -36,16 +36,16 @@ export class AccountEntity {
 	}
 
 	public static fromPrisma(args: {
-		account: PrismaAccount;
+		prismaAccount: PrismaAccount;
 		entries: EntryValues[];
 	}): AccountEntity {
 		return AccountEntity.create({
-			id: args.account.id,
-			name: args.account.name,
-			budgetId: args.account.budgetId,
-			type: args.account.type,
-			createdAt: args.account.createdAt,
-			updatedAt: args.account.updatedAt,
+			id: args.prismaAccount.id,
+			name: args.prismaAccount.name,
+			budgetId: args.prismaAccount.budgetId,
+			type: args.prismaAccount.type,
+			createdAt: args.prismaAccount.createdAt,
+			updatedAt: args.prismaAccount.updatedAt,
 			entries: args.entries
 		});
 	}
@@ -65,39 +65,49 @@ export class AccountEntity {
 	public get incomingSum(): number {
 		if (!this.entries) throw new Error('Entires not loaded');
 
-		return this.entries.reduce(
-			(sum, entry) => (entry.type === 'INCOME' ? sum + entry.amount : sum),
-			0
-		);
+		return this.entries.reduce((sum, entry) => {
+			if (entry.type === 'INCOME') {
+				return sum + entry.entryItems.reduce((itemSum, item) => itemSum + item.amount, 0);
+			}
+
+			return sum;
+		}, 0);
 	}
 
 	public get outgoingSum(): number {
 		if (!this.entries) throw new Error('Entires not loaded');
 
-		return this.entries.reduce(
-			(sum, entry) => (entry.type === 'EXPENSE' ? sum + entry.amount : sum),
-			0
-		);
+		return this.entries.reduce((sum, entry) => {
+			if (entry.type === 'EXPENSE') {
+				return sum + entry.entryItems.reduce((itemSum, item) => itemSum + item.amount, 0);
+			}
+
+			return sum;
+		}, 0);
 	}
 
 	public get transferInSum(): number {
-		if (!this.entries) throw new Error('Entires not loaded');
+		if (!this.entries) throw new Error('Entries not loaded');
 
-		return this.entries.reduce(
-			(sum, entry) =>
-				entry.type === 'TRANSFER' && entry.destinationAccountId ? sum + entry.amount : sum,
-			0
-		);
+		return this.entries.reduce((sum, entry) => {
+			if (entry.type === 'TRANSFER' && entry.destinationAccountId === this.id) {
+				return sum + entry.entryItems.reduce((itemSum, item) => itemSum + item.amount, 0);
+			}
+
+			return sum;
+		}, 0);
 	}
 
 	public get transferOutSum(): number {
-		if (!this.entries) throw new Error('Entires not loaded');
+		if (!this.entries) throw new Error('Entries not loaded');
 
-		return this.entries.reduce(
-			(sum, entry) =>
-				entry.type === 'TRANSFER' && entry.destinationAccountId ? sum + entry.amount : sum,
-			0
-		);
+		return this.entries.reduce((sum, entry) => {
+			if (entry.type === 'TRANSFER' && entry.accountId === this.id) {
+				return sum + entry.entryItems.reduce((itemSum, item) => itemSum + item.amount, 0);
+			}
+
+			return sum;
+		}, 0);
 	}
 
 	public get balance(): number {
