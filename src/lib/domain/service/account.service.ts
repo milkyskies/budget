@@ -34,8 +34,8 @@ export class AccountService {
 		});
 
 		const account = AccountEntity.fromPrisma({
-			account: prismaAccount,
-			entries: prismaAccount.entries.map((entry) => EntryEntity.fromPrisma({ entry }).toValues())
+			prismaAccount: prismaAccount,
+			entries: prismaAccount.entries.map((entry) => EntryEntity.fromPrisma({ prismaEntry: entry }).toValues())
 		});
 
 		return account;
@@ -61,8 +61,8 @@ export class AccountService {
 		});
 
 		return AccountEntity.fromPrisma({
-			account: updatedAccount,
-			entries: updatedAccount.entries.map((entry) => EntryEntity.fromPrisma({ entry }).toValues())
+			prismaAccount: updatedAccount,
+			entries: updatedAccount.entries.map((entry) => EntryEntity.fromPrisma({ prismaEntry: entry }).toValues())
 		});
 	}
 }

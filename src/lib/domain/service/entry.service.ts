@@ -30,7 +30,7 @@ export class EntryService {
 				});
 
 		return EntryEntity.fromPrisma({
-			entry: prismaEntry,
+			prismaEntry: prismaEntry,
 			category: prismaEntry.category ?? undefined,
 			account: prismaEntry.account ?? undefined
 		});

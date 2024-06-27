@@ -68,9 +68,10 @@ model Category {
   categoryGroupId String        @map("category_group_id")
   categoryGroup   CategoryGroup @relation(fields: [categoryGroupId], references: [id])
   assignedAmount  Int           @default(0) @map("assigned_amount")
-  entries         Entry[]
-  createdAt       DateTime      @default(now()) @map("created_at")
-  updatedAt       DateTime      @updatedAt @map("updated_at")
+  entryItems      EntryItem[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("categories")
 }
@@ -85,25 +86,38 @@ enum EntryType {
 model Entry {
   id String @id @default(cuid()) @map("id")
 
-  amount Float     @map("amount")
-  type   EntryType @map("type")
-  date   DateTime  @map("date")
-  memo   String    @map("memo")
+  type EntryType @map("type")
+  date DateTime  @map("date")
+  memo String    @map("memo")
 
   accountId            String  @map("account_id")
   destinationAccountId String? @map("destination_account_id") // For transfers
   externalPartyId      String? @map("external_party_id") // For income and expenses
-  categoryId           String? @map("category_id")
 
   account            Account        @relation("Account", fields: [accountId], references: [id])
   destinationAccount Account?       @relation("DestinationAccount", fields: [destinationAccountId], references: [id])
   externalParty      ExternalParty? @relation(fields: [externalPartyId], references: [id])
-  category           Category?      @relation(fields: [categoryId], references: [id])
+  entryItems         EntryItem[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("entries")
+}
+
+model EntryItem {
+  id         String @id @default(cuid()) @map("id")
+  entryId    String @map("entry_id")
+  categoryId String @map("category_id")
+  amount     Int    @map("amount")
+
+  entry    Entry    @relation(fields: [entryId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("entry_items")
 }
 
 model ExternalParty {

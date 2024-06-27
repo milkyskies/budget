@@ -1,6 +1,7 @@
 import dayjs from '$lib/app/time/dayjs';
 import type { Category as PrismaCategory } from '@prisma/client';
 import { EntryEntity, type EntryValues } from './entry.entity';
+import { EntryItemEntity, type EntryItemEntityValues } from './entry-item.entity';
 
 export type CategoryValues = {
 	id: string;
@@ -9,7 +10,7 @@ export type CategoryValues = {
 	assignedAmount: number;
 	createdAt: Date;
 	updatedAt: Date;
-	entries?: EntryValues[];
+	entryItems?: EntryItemEntityValues[];
 };
 
 export class CategoryEntity {
@@ -19,7 +20,7 @@ export class CategoryEntity {
 	public readonly assignedAmount: number;
 	public readonly createdAt: dayjs.Dayjs;
 	public readonly updatedAt: dayjs.Dayjs;
-	public readonly entries?: EntryEntity[];
+	public readonly entryItems?: EntryItemEntity[];
 
 	private constructor(args: CategoryValues) {
 		this.id = args.id;
@@ -28,7 +29,7 @@ export class CategoryEntity {
 		this.assignedAmount = args.assignedAmount;
 		this.createdAt = dayjs(args.createdAt);
 		this.updatedAt = dayjs(args.updatedAt);
-		this.entries = args.entries?.map((entry) => EntryEntity.create(entry));
+		this.entryItems = args.entryItems?.map((entry) => EntryItemEntity.create(entry));
 	}
 
 	public static create(args: CategoryValues): CategoryEntity {
@@ -37,7 +38,7 @@ export class CategoryEntity {
 
 	public static fromPrisma(args: {
 		category: PrismaCategory;
-		entries?: EntryValues[];
+		entryItems?: EntryItemEntityValues[];
 	}): CategoryEntity {
 		return CategoryEntity.create({
 			id: args.category.id,
@@ -46,7 +47,7 @@ export class CategoryEntity {
 			assignedAmount: args.category.assignedAmount,
 			createdAt: args.category.createdAt,
 			updatedAt: args.category.updatedAt,
-			entries: args.entries
+			entryItems: args.entryItems
 		});
 	}
 
@@ -58,12 +59,12 @@ export class CategoryEntity {
 			assignedAmount: this.assignedAmount,
 			createdAt: this.createdAt.toDate(),
 			updatedAt: this.updatedAt.toDate(),
-			entries: this.entries?.map((entry) => entry.toValues())
+			entryItems: this.entryItems?.map((entry) => entry.toValues())
 		};
 	}
 
 	public get usedAmount(): number {
-		return this.entries?.reduce((acc, entry) => acc + entry.amount, 0) ?? 0;
+		return this.entryItems?.reduce((acc, entry) => acc + entry.amount, 0) ?? 0;
 	}
 
 	public get remainingAmount(): number {
