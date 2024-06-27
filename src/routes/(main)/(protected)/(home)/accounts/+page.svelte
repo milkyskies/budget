@@ -6,6 +6,7 @@
 	import Modal from 'src/ui/common/modal.svelte';
 	import type { PageServerData } from './$types';
 	import { invalidateAll } from '$app/navigation';
+	import YenInput from 'src/ui/common/yen-input.svelte';
 
 	export let data: PageServerData;
 
@@ -66,7 +67,8 @@
 			throw new Error('Failed to add account');
 		}
 
-		accounts = [...accounts, AccountEntity.create(response.data)];
+		await invalidateAll();
+
 		closeModal();
 	}
 
@@ -89,7 +91,7 @@
 			throw new Error('Failed to update account');
 		}
 
-		invalidateAll();
+		await invalidateAll();
 
 		closeModal();
 	}
@@ -109,7 +111,7 @@
 			throw new Error('Failed to delete account');
 		}
 
-		invalidateAll();
+		await invalidateAll();
 
 		closeModal();
 	}
@@ -212,13 +214,15 @@
 				<label for="new-account-balance" class="block text-sm font-medium mb-1 text-gray-700"
 					>初期残高</label
 				>
-				<input
-					id="new-account-balance"
-					type="number"
-					bind:value={newAccount.balance}
-					placeholder="初期残高"
-					class="w-full p-2 border rounded"
-				/>
+				<div class="relative">
+					<span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">¥</span>
+
+					<YenInput
+						id="new-account-balance"
+						bind:value={newAccount.balance}
+						placeholder="初期残高"
+					/>
+				</div>
 			</div>
 			<button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
 				>口座を追加</button

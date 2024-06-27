@@ -3,7 +3,7 @@
 	import type { CategoryGroupEntity } from 'src/lib/domain/entity/category-group.entity';
 	import type { CategoryEntity } from 'src/lib/domain/entity/category.entity';
 	import { fade, slide } from 'svelte/transition';
-	import YenInput from './yen-input.svelte';
+	import YenInput from '../../../../../../ui/common/yen-input.svelte';
 	import type { UpsertEntryDto } from 'src/routes/api/entries/dto/upsert-entry.dto';
 	import { EntryType } from '@prisma/client';
 	import type { EntryEntity } from 'src/lib/domain/entity/entry.entity';
