@@ -7,10 +7,10 @@ import { CategoryEntity } from '../entity/category.entity';
 import { EntryEntity } from '../entity/entry.entity';
 
 export class BudgetService {
-	constructor(private readonly prismaClient: PrismaClient) {}
+	private constructor(private readonly prismaClient: PrismaClient) {}
 
-	public static new(prismaClient: PrismaClient): BudgetService {
-		return new BudgetService(prismaClient);
+	public static new(args: { prismaClient: PrismaClient }): BudgetService {
+		return new BudgetService(args.prismaClient);
 	}
 
 	public async getBudgetFromMonth(args: {
@@ -38,7 +38,11 @@ export class BudgetService {
 						}
 					}
 				},
-				accounts: true
+				accounts: {
+					include: {
+						entries: true
+					}
+				}
 			}
 		});
 
@@ -59,7 +63,12 @@ export class BudgetService {
 			});
 		});
 
-		const accounts = budget.accounts.map((account) => AccountEntity.fromPrisma(account));
+		const accounts = budget.accounts.map((account) =>
+			AccountEntity.fromPrisma({
+				account,
+				entries: account.entries.map((entry) => EntryEntity.fromPrisma({ entry }).toValues())
+			})
+		);
 
 		return BudgetEntity.fromPrisma({
 			budget,
@@ -100,7 +109,11 @@ export class BudgetService {
 						}
 					}
 				},
-				accounts: true
+				accounts: {
+					include: {
+						entries: true
+					}
+				}
 			}
 		});
 
@@ -115,7 +128,12 @@ export class BudgetService {
 			});
 		});
 
-		const accounts = budget.accounts.map((account) => AccountEntity.fromPrisma(account));
+		const accounts = budget.accounts.map((account) =>
+			AccountEntity.fromPrisma({
+				account,
+				entries: account.entries.map((entry) => EntryEntity.fromPrisma({ entry }).toValues())
+			})
+		);
 
 		return BudgetEntity.fromPrisma({
 			budget,
@@ -135,13 +153,23 @@ export class BudgetService {
 			},
 			include: {
 				category: true,
-				payee: true
+				destinationAccount: true,
+				externalParty: true,
+				account: true
 			},
 			orderBy: {
 				date: 'desc'
 			}
 		});
 
-		return entries.map((entry) => EntryEntity.fromPrisma({ entry, category: entry.category }));
+		return entries.map((entry) =>
+			EntryEntity.fromPrisma({
+				entry,
+				category: entry.category ?? undefined,
+				account: entry.account ?? undefined,
+				destinationAccount: entry.destinationAccount ?? undefined,
+				externalParty: entry.externalParty ?? undefined
+			})
+		);
 	}
 }

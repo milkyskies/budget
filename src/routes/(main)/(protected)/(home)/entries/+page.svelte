@@ -1,28 +1,41 @@
 <script lang="ts">
 	import { formatCurrency } from 'src/lib/app/presentation/format-currency.util';
+	import { AccountEntity } from 'src/lib/domain/entity/account.entity';
+	import { CategoryGroupEntity } from 'src/lib/domain/entity/category-group.entity';
 	import { EntryEntity } from 'src/lib/domain/entity/entry.entity';
 	import Modal from 'src/ui/common/modal.svelte';
 	import type { PageServerData } from './$types';
+	import EntryInput from './_components/entry-input.svelte';
+	import { getSvetchClient } from 'src/lib/app/api/svetch.client';
+	import type { UpsertEntryDto } from 'src/routes/api/entries/dto/upsert-entry.dto';
+	import { invalidateAll } from '$app/navigation';
 
 	export let data: PageServerData;
 
-	let entries: EntryEntity[] = data.entries.map((entry) => EntryEntity.create(entry));
-	let openModal = 'NONE' as 'NEW_ENTRY' | 'EDIT_ENTRY' | 'NONE';
-	let newEntry = {
-		date: new Date().toISOString().split('T')[0],
-		amount: 0,
-		category: '',
-		description: '',
-		accountId: ''
-	};
+	$: entries = data.entries.map((entry) => EntryEntity.create(entry));
+	$: categoryGroups = data.categoryGroups.map((group) => CategoryGroupEntity.create(group));
+	$: accounts = data.accounts.map((account) => AccountEntity.create(account));
 
-	async function addEntry() {
-		// const apiClient = getSvetchClient();
-		// const response = await apiClient.post('api/entries', { body: newEntry });
-		// if (response.ok && response.data) {
-		// 	entries = [...entries, EntryEntity.create(response.data)];
-		// 	openModal = 'NONE';
-		// }
+	let openModal = 'NONE' as 'NEW_ENTRY' | 'EDIT_ENTRY' | 'NONE';
+
+	async function addEntry(args: { entry: UpsertEntryDto }) {
+		const apiClient = getSvetchClient();
+		const response = await apiClient.put('api/entries', {
+			body: {
+				...args.entry
+			}
+		});
+
+		if (!response.ok) {
+			// TODO: Show error message to user
+			alert('失敗しました');
+
+			return;
+		}
+
+		await invalidateAll();
+
+		openModal = 'NONE';
 	}
 </script>
 
@@ -63,9 +76,19 @@
 </div>
 
 <!-- New entry modal -->
-<Modal open={openModal === 'NEW_ENTRY'}>
-	<h2 class="text-xl font-bold mb-4 text-gray-800">新規入力</h2>
-	<form on:submit|preventDefault={addEntry}>
-		<!-- Form fields remain the same -->
-	</form>
-</Modal>
+{#if openModal === 'NEW_ENTRY'}
+	<Modal
+		onClose={() => {
+			openModal = 'NONE';
+		}}
+		title="支出"
+	>
+		<EntryInput
+			{accounts}
+			{categoryGroups}
+			onAddEntry={async (entry) => {
+				await addEntry({ entry });
+			}}
+		/>
+	</Modal>
+{/if}

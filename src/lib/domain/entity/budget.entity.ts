@@ -31,7 +31,7 @@ export class BudgetEntity {
 			CategoryGroupEntity.create(categoryGroup)
 		);
 
-		this.accounts = args.accounts.map((account) => AccountEntity.fromPrisma(account));
+		this.accounts = args.accounts.map((account) => AccountEntity.create(account));
 		this.createdAt = dayjs(args.createdAt);
 		this.updatedAt = dayjs(args.updatedAt);
 	}

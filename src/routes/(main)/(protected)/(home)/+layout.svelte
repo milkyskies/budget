@@ -1,11 +1,31 @@
 <script lang="ts">
+	import { page } from '$app/stores';
 	import { formatCurrency } from 'src/lib/app/presentation/format-currency.util';
 	import type { LayoutServerData } from './$types';
+	import { BudgetEntity } from 'src/lib/domain/entity/budget.entity';
+	import { AccountEntity } from 'src/lib/domain/entity/account.entity';
+	import PigIcon from 'src/ui/icons/lucide/pig-icon.svelte';
+	import BookIcon from 'src/ui/icons/lucide/book-icon.svelte';
+	import TableIcon from 'src/ui/icons/lucide/table-icon.svelte';
 
 	export let data: LayoutServerData;
 
-	const budget = data.budget;
-	const accounts = data.budget.accounts;
+	$: budget = BudgetEntity.create(data.budget);
+	$: accounts = data.budget.accounts.map((account) => AccountEntity.create(account));
+
+	type NavItem = {
+		href: string;
+		label: string;
+		icon: typeof PigIcon;
+	};
+
+	const NAV_ITEMS: NavItem[] = [
+		{ href: '/entries', label: '家計簿', icon: BookIcon },
+		{ href: '/', label: '予算', icon: TableIcon },
+		{ href: '/accounts', label: '口座', icon: PigIcon }
+	];
+
+	$: isActive = (href: string): boolean => $page.url.pathname === href;
 </script>
 
 <main class="bg-white min-h-screen flex flex-col lg:flex-row">
@@ -16,10 +36,16 @@
 			<p class="text-sm text-gray-600">cr.heisei12@gmail.com</p>
 		</div>
 		<nav>
-			<a href="/" class="block py-2 px-4 bg-blue-100 text-blue-700 rounded mb-1 shadow-sm">予算</a>
-			<a href="entries" class="block py-2 px-4 hover:bg-gray-100 rounded mb-1">家計簿</a>
-			<a href="#" class="block py-2 px-4 hover:bg-gray-100 rounded mb-1">レポート</a>
-			<a href="#" class="block py-2 px-4 hover:bg-gray-100 rounded mb-1">財布と口座</a>
+			{#each NAV_ITEMS as { href, label }}
+				<a
+					{href}
+					class="block py-2 px-4 rounded mb-1 {isActive(href)
+						? 'bg-blue-100 text-blue-700 shadow-sm'
+						: 'hover:bg-gray-100'}"
+				>
+					{label}
+				</a>
+			{/each}
 		</nav>
 		<div class="mt-6">
 			<h2 class="text-sm font-semibold mb-3 text-gray-700">口座</h2>
@@ -48,55 +74,18 @@
 	<slot />
 	<!-- モバイル用タブボタン -->
 	<nav
-		class="fixed bottom-0 left-0 right-0 bg-white text-gray-600 p-2 flex justify-around lg:hidden shadow-lg"
+		class="fixed bottom-0 left-0 right-0 bg-white text-gray-600 p-2 flex justify-around lg:hidden shadow-lg overscroll-none"
 	>
-		<a href="#" class="flex flex-col items-center py-2 px-4 bg-blue-50 rounded-lg text-blue-700">
-			<svg
-				class="w-6 h-6 mb-1"
-				fill="none"
-				stroke="currentColor"
-				viewBox="0 0 24 24"
-				xmlns="http://www.w3.org/2000/svg"
-				><path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-				></path></svg
+		{#each NAV_ITEMS as { href, label, icon: Icon }}
+			<a
+				{href}
+				class="flex flex-col items-center py-2 px-4 rounded-lg {isActive(href)
+					? 'bg-blue-50 text-blue-700'
+					: 'text-gray-600'}"
 			>
-			<span class="text-xs">予算</span>
-		</a>
-		<a href="#" class="flex flex-col items-center py-2 px-4">
-			<svg
-				class="w-6 h-6 mb-1"
-				fill="none"
-				stroke="currentColor"
-				viewBox="0 0 24 24"
-				xmlns="http://www.w3.org/2000/svg"
-				><path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-				></path></svg
-			>
-			<span class="text-xs">レポート</span>
-		</a>
-		<a href="#" class="flex flex-col items-center py-2 px-4">
-			<svg
-				class="w-6 h-6 mb-1"
-				fill="none"
-				stroke="currentColor"
-				viewBox="0 0 24 24"
-				xmlns="http://www.w3.org/2000/svg"
-				><path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-				></path></svg
-			>
-			<span class="text-xs">口座</span>
-		</a>
+				<Icon class="w-6 h-6 mb-1" />
+				<span class="text-xs">{label}</span>
+			</a>
+		{/each}
 	</nav>
 </main>
