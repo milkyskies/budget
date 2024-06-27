@@ -1,11 +1,11 @@
 <script lang="ts">
-	let displayValue = '';
-	export let value = 0;
+	export let value: number;
+	let displayValue = formatValue(value);
 
 	function handleInput(event: Event) {
 		const input = event.target as HTMLInputElement;
 		const rawValue = input.value.replace(/\D/g, ''); // Remove all non-digits
-		const formattedValue = rawValue.replace(/\B(?=(\d{3})+(?!\d))/g, ','); // Add commas
+		const formattedValue = formatValue(Number(rawValue));
 
 		displayValue = formattedValue;
 		value = Number(removeCommas(rawValue));
@@ -13,6 +13,10 @@
 
 	function removeCommas(formattedValue: string): string {
 		return formattedValue.replace(/,/g, '');
+	}
+
+	function formatValue(value: number): string {
+		return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); // Add commas
 	}
 </script>
 

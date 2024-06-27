@@ -1,5 +1,4 @@
 <script lang="ts">
-	import dayjs from '$lib/app/time/dayjs';
 	import type { AccountEntity } from 'src/lib/domain/entity/account.entity';
 	import type { CategoryGroupEntity } from 'src/lib/domain/entity/category-group.entity';
 	import type { CategoryEntity } from 'src/lib/domain/entity/category.entity';
@@ -7,15 +6,20 @@
 	import YenInput from './yen-input.svelte';
 	import type { UpsertEntryDto } from 'src/routes/api/entries/dto/upsert-entry.dto';
 	import { EntryType } from '@prisma/client';
+	import type { EntryEntity } from 'src/lib/domain/entity/entry.entity';
 
 	export let categoryGroups: CategoryGroupEntity[];
 	export let accounts: AccountEntity[];
+	export let initialEntry: EntryEntity | undefined = undefined;
+	export let onSubmit: (entry: UpsertEntryDto) => Promise<void>;
 
-	let date = new Date();
-	let amount = 0;
-	let selectedCategory: CategoryEntity | undefined;
-	let memo = '';
-	let selectedAccount: AccountEntity | undefined = accounts[0] ?? undefined;
+	let date = initialEntry?.date ?? new Date();
+	let amount = initialEntry?.amount ?? 0;
+	let selectedCategory: CategoryEntity | undefined = initialEntry?.category;
+	let memo = initialEntry?.memo ?? '';
+	let selectedAccount: AccountEntity | undefined = initialEntry
+		? accounts.find((a) => a.id === initialEntry.accountId)
+		: accounts[0] ?? undefined;
 
 	let showCategoryPanel = false;
 
@@ -24,25 +28,6 @@
 		showCategoryPanel = false;
 	}
 
-	async function addEntry() {
-		try {
-			if (!selectedAccount) throw new Error('アカウントが選択されていません');
-
-			await onAddEntry({
-				accountId: selectedAccount.id,
-				categoryId: selectedCategory?.id,
-				date,
-				amount,
-				memo,
-				type: EntryType.EXPENSE
-			});
-		} catch (error) {
-			alert((error as Error).message);
-		}
-	}
-
-	export let onAddEntry: (entry: UpsertEntryDto) => Promise<void>;
-
 	function clearForm() {
 		date = new Date();
 		amount = 0;
@@ -50,9 +35,29 @@
 		memo = '';
 		selectedAccount = undefined;
 	}
+
+	async function handleSubmit() {
+		try {
+			if (!selectedAccount) throw new Error('アカウントが選択されていません');
+
+			await onSubmit({
+				id: initialEntry?.id,
+				accountId: selectedAccount.id,
+				categoryId: selectedCategory?.id,
+				date,
+				amount,
+				memo,
+				type: EntryType.EXPENSE
+			});
+
+			clearForm();
+		} catch (error) {
+			alert((error as Error).message);
+		}
+	}
 </script>
 
-<form on:submit|preventDefault={addEntry} class="space-y-4">
+<form on:submit|preventDefault={handleSubmit} class="space-y-4 pb-24">
 	<div>
 		<label for="amount" class="block text-sm font-medium mb-1 text-gray-700">金額</label>
 		<div class="relative">
@@ -78,7 +83,7 @@
 	</div>
 
 	<div>
-		<label class="block text-sm font-medium mb-1 text-gray-700">資産</label>
+		<label for="account" class="block text-sm font-medium mb-1 text-gray-700">資産</label>
 		<div class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
 			{#each accounts as account}
 				<button
@@ -103,24 +108,40 @@
 		></textarea>
 	</div>
 
-	<div class="flex justify-end space-x-2">
-		<button
-			type="submit"
-			class="bg-blue-500 text-white px-4 py-2 rounded-md shadow-sm hover:bg-blue-600 transition-colors"
-		>
-			保存
-		</button>
-		<button
-			type="button"
-			class="bg-gray-100 text-gray-700 px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-200 transition-colors"
-			on:click={async () => {
-				await addEntry();
-
-				clearForm();
-			}}
-		>
-			続ける
-		</button>
+	<div class="space-y-2">
+		{#if initialEntry}
+			<button
+				type="submit"
+				class="w-full bg-blue-50 text-blue-600 border border-blue-200 p-2 rounded hover:bg-blue-100 transition-colors"
+			>
+				更新
+			</button>
+			<button
+				type="button"
+				class="w-full bg-red-50 text-red-600 border border-red-200 p-2 rounded hover:bg-red-100 transition-colors"
+				on:click={() => {
+					/* Add delete function here */
+				}}
+			>
+				削除
+			</button>
+		{:else}
+			<button
+				type="submit"
+				class="w-full bg-blue-50 text-blue-600 border border-blue-200 p-2 rounded hover:bg-blue-100 transition-colors"
+			>
+				保存
+			</button>
+			<button
+				type="button"
+				class="w-full bg-gray-50 text-gray-600 border border-gray-200 p-2 rounded hover:bg-gray-100 transition-colors"
+				on:click={async () => {
+					await handleSubmit();
+				}}
+			>
+				続けて入力
+			</button>
+		{/if}
 	</div>
 </form>
 
