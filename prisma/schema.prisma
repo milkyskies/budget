@@ -85,18 +85,17 @@ enum EntryType {
 model Entry {
   id String @id @default(cuid()) @map("id")
 
-  amount          Float     @map("amount")
-  type            EntryType @map("type")
-  date            DateTime  @map("date")
-  memo            String    @map("memo")
-  transactionDate DateTime  @map("transaction_date")
+  amount Float     @map("amount")
+  type   EntryType @map("type")
+  date   DateTime  @map("date")
+  memo   String    @map("memo")
 
-  primaryAccountId     String  @map("primary_account_id")
+  accountId            String  @map("account_id")
   destinationAccountId String? @map("destination_account_id") // For transfers
   externalPartyId      String? @map("external_party_id") // For income and expenses
   categoryId           String? @map("category_id")
 
-  primaryAccount     Account        @relation("PrimaryAccount", fields: [primaryAccountId], references: [id])
+  account            Account        @relation("Account", fields: [accountId], references: [id])
   destinationAccount Account?       @relation("DestinationAccount", fields: [destinationAccountId], references: [id])
   externalParty      ExternalParty? @relation(fields: [externalPartyId], references: [id])
   category           Category?      @relation(fields: [categoryId], references: [id])
@@ -127,16 +126,15 @@ enum AccountType {
 }
 
 model Account {
-  id      String      @id @default(cuid()) @map("id")
-  name    String      @map("name")
-  balance Float       @map("balance")
-  type    AccountType @map("type")
-  budget  Budget      @relation(fields: [budgetId], references: [id])
+  id     String      @id @default(cuid()) @map("id")
+  name   String      @map("name")
+  type   AccountType @map("type")
+  budget Budget      @relation(fields: [budgetId], references: [id])
 
   budgetId String @map("budget_id")
 
-  entries          Entry[] @relation("PrimaryAccount") // Entries that are transferring from this account
-  receivingEntries Entry[] @relation("DestinationAccount") // Entries that are transferring to this account
+  entries          Entry[] @relation("Account") // Entries that are bassed on this account
+  receivingEntries Entry[] @relation("DestinationAccount") // Entries that are transfers and are transferring to this account
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

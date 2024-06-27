@@ -23,9 +23,6 @@ importers:
       javascript-time-ago:
         specifier: ^2.5.10
         version: 2.5.10
-      lucide-svelte:
-        specifier: ^0.378.0
-        version: 0.378.0(svelte@4.2.16)
       openai:
         specifier: ^4.45.0
         version: 4.45.0
@@ -2164,11 +2161,6 @@ packages:
 
   lucia@3.2.0:
     resolution: {integrity: sha512-eXMxXwk6hqtjRTj4W/x3EnTUtAztLPm0p2N2TEBMDEbakDLXiYnDQ9z/qahjPdPdhPguQc+vwO0/88zIWxlpuw==}
-
-  lucide-svelte@0.378.0:
-    resolution: {integrity: sha512-T7hV1sfOc94AWE5GOJ6r9wGEsR4h4TJr8d4Z0sM8O0e3IBcmeIvEGRAA6jCp7NGy4PeGrn5Tju6Y2JwJQntNrQ==}
-    peerDependencies:
-      svelte: ^3 || ^4 || ^5.0.0-next.42
 
   magic-string@0.30.10:
     resolution: {integrity: sha512-iIRwTIf0QKV3UAnYK4PU8uiEc4SRh5jX0mwpIwETPpHdhVM4f53RSwS/vXvN1JhGX+Cs7B8qIq3d6AH49O5fAQ==}
@@ -5098,10 +5090,6 @@ snapshots:
   lucia@3.2.0:
     dependencies:
       oslo: 1.2.0
-
-  lucide-svelte@0.378.0(svelte@4.2.16):
-    dependencies:
-      svelte: 4.2.16
 
   magic-string@0.30.10:
     dependencies:

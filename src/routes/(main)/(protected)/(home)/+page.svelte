@@ -4,50 +4,24 @@
 	import { formatCurrency } from 'src/lib/app/presentation/format-currency.util';
 	import { AccountEntity } from 'src/lib/domain/entity/account.entity';
 	import { BudgetEntity } from 'src/lib/domain/entity/budget.entity';
-	import type { CreateAccountDto } from 'src/routes/api/accounts/post/dto/create-account.dto';
+	import type { CreateAccountDto } from 'src/routes/api/accounts/dto/create-account.dto';
 	import Modal from 'src/ui/common/modal.svelte';
 	import type { PageServerData } from './$types';
+	import { onMount } from 'svelte';
 
 	export let data: PageServerData;
 
-	const budget = BudgetEntity.create(data.budget);
+	$: budget = BudgetEntity.create(data.budget);
 
-	let readyToAssign = budget.monthlyAssignableAmount;
-	let categoryGroups = budget.categoryGroups;
-	let availableInJune = 217272;
-	let accounts = budget.accounts;
+	$: readyToAssign = budget.monthlyAssignableAmount;
+	$: categoryGroups = budget.categoryGroups;
+	$: availableInJune = 217272;
+	$: accounts = budget.accounts;
 
 	let openModal = 'NONE' as 'NEW_ACCOUNT' | 'EDIT_ACCOUNT' | 'NONE';
-	let createAccountDto: CreateAccountDto = {
-		name: '',
-		type: 'CASH',
-		balance: 0,
-		budgetId: budget.id
-	};
 
 	function changeMonth(direction: 'prev' | 'next') {
 		throw new Error('Not implemented');
-	}
-
-	async function addAccount() {
-		const apiClient = getSvetchClient();
-
-		const response = await apiClient.post('api/accounts/post', {
-			body: {
-				name: createAccountDto.name,
-				type: createAccountDto.type,
-				balance: createAccountDto.balance,
-				budgetId: budget.id
-			}
-		});
-
-		if (!response.ok || !response.data) {
-			throw new Error('Failed to add account');
-		}
-
-		const newAccount = AccountEntity.create(response.data);
-
-		accounts = [...accounts, newAccount];
 	}
 
 	function formatUsedAmount(amount: number) {
@@ -142,59 +116,3 @@
 		</div>
 	</div>
 </aside>
-
-<!-- New account modal -->
-<Modal open={openModal === 'NEW_ACCOUNT'}>
-	<h2 class="text-xl font-bold mb-4 text-gray-800">新しい口座を追加</h2>
-	<form on:submit|preventDefault={addAccount}>
-		<div class="mb-4">
-			<label for="accountName" class="block text-sm font-medium mb-1 text-gray-700">名前</label>
-			<input
-				id="accountName"
-				type="text"
-				bind:value={createAccountDto.name}
-				class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-				required
-			/>
-		</div>
-		<div class="mb-4">
-			<label for="accountType" class="block text-sm font-medium mb-1 text-gray-700">種類</label>
-			<select
-				id="accountType"
-				bind:value={createAccountDto.type}
-				class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-				required
-			>
-				<option value="" disabled selected>選択してください</option>
-				<option value={AccountType.CASH}>現金</option>
-				<option value={AccountType.CHECKING}>チェック</option>
-				<option value={AccountType.SAVINGS}>貯蓄</option>
-				<option value={AccountType.CREDIT_CARD}>クレジット</option>
-			</select>
-		</div>
-		<div class="mb-4">
-			<label for="accountBalance" class="block text-sm font-medium mb-1 text-gray-700"
-				>現在の残高</label
-			>
-			<input
-				id="accountBalance"
-				type="number"
-				bind:value={createAccountDto.balance}
-				class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-				required
-			/>
-		</div>
-		<div class="flex justify-end">
-			<button
-				type="button"
-				class="mr-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-200 transition-colors"
-				on:click={() => (openModal = 'NONE')}>キャンセル</button
-			>
-			<button
-				type="submit"
-				class="bg-blue-500 text-white px-4 py-2 rounded-md shadow-sm hover:bg-blue-600 transition-colors"
-				>追加</button
-			>
-		</div>
-	</form>
-</Modal>

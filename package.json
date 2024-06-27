@@ -60,7 +60,6 @@
 		"@prisma/client": "^5.13.0",
 		"dayjs": "^1.11.11",
 		"javascript-time-ago": "^2.5.10",
-		"lucide-svelte": "^0.378.0",
 		"openai": "^4.45.0",
 		"preline": "^2.1.0",
 		"svetch.ts": "^1.0.49",
