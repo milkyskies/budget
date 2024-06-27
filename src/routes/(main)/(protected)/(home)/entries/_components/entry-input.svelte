@@ -4,38 +4,58 @@
 	import type { CategoryEntity } from 'src/lib/domain/entity/category.entity';
 	import { fade, slide } from 'svelte/transition';
 	import YenInput from '../../../../../../ui/common/yen-input.svelte';
-	import type { UpsertEntryDto } from 'src/routes/api/entries/dto/upsert-entry.dto';
+	import type {
+		UpsertEntryDto,
+		UpsertEntryItemDto
+	} from 'src/routes/api/entries/_dto/upsert-entry.dto';
 	import { EntryType } from '@prisma/client';
 	import type { EntryEntity } from 'src/lib/domain/entity/entry.entity';
 	import type { EntryItemEntity } from 'src/lib/domain/entity/entry-item.entity';
+	import dayjs from '$lib/app/time/dayjs';
 
 	export let categoryGroups: CategoryGroupEntity[];
 	export let accounts: AccountEntity[];
 	export let initialEntry: EntryEntity | undefined = undefined;
 	export let onSubmit: (entry: UpsertEntryDto) => Promise<void>;
 
+	type EntryItem = {
+		amount: number;
+		category?: CategoryEntity;
+	};
+
+	let date = dayjs();
 	let memo = initialEntry?.memo ?? '';
-	let selectedAccount: AccountEntity | undefined = initialEntry
+	let selectedAccount = initialEntry
 		? accounts.find((a) => a.id === initialEntry.accountId)
-		: accounts[0] ?? undefined;
+		: accounts[0];
 
-	let entryItems: EntryItemEntity[] = initialEntry?.entryItems ?? [
-		{ amount: 0, categoryId: undefined }
-	];
+	let entryItems: EntryItem[] = initialEntry?.entryItems ?? [{ amount: 0 }];
 
-	let showCategoryPanel = false;
+	let categoryPanelState:
+		| {
+				open: boolean;
+				entryItemIndex: number;
+		  }
+		| {
+				open: false;
+		  } = { open: false };
 
-	function selectCategory(category: CategoryEntity) {
-		selectedCategory = category;
-		showCategoryPanel = false;
+	$: currentlySelectedEntryItem = categoryPanelState.open
+		? entryItems[categoryPanelState.entryItemIndex]
+		: undefined;
+
+	function selectCurrentItemCategory(args: { category: CategoryEntity }) {
+		if (!categoryPanelState.open) return;
+
+		entryItems[categoryPanelState.entryItemIndex].category = args.category;
+
+		categoryPanelState = {
+			open: false
+		};
 	}
 
 	function clearForm() {
-		date = new Date();
-		amount = 0;
-		selectedCategory = undefined;
 		memo = '';
-		selectedAccount = undefined;
 	}
 
 	async function handleSubmit() {
@@ -45,9 +65,8 @@
 			await onSubmit({
 				id: initialEntry?.id,
 				accountId: selectedAccount.id,
-				categoryId: selectedCategory?.id,
-				date,
-				amount,
+				date: date.toDate(),
+				entryItems,
 				memo,
 				type: EntryType.EXPENSE
 			});
@@ -57,57 +76,105 @@
 			alert((error as Error).message);
 		}
 	}
+
+	function openCategoryPanel(args: { entryItemIndex: number }) {
+		categoryPanelState = {
+			open: true,
+			entryItemIndex: args.entryItemIndex
+		};
+	}
+
+	function closeCategoryPanel() {
+		categoryPanelState = { open: false };
+	}
+
+	function addEntryItem() {
+		entryItems = [...entryItems, { amount: 0 }];
+	}
 </script>
 
 <form on:submit|preventDefault={handleSubmit} class="space-y-4 pb-24">
 	<div>
-		<label for="amount" class="block text-sm font-medium mb-1 text-gray-700">金額</label>
+		<label for="externalParty" class="block text-sm font-medium mb-1 text-gray-700">お店</label>
+		<!-- <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4"> -->
+		<input
+			id="externalParty"
+			type="text"
+			class="p-2 border border-gray-300 rounded-md shadow-sm w-full"
+		/>
+		<!-- </div> -->
 	</div>
-	{#each entryItems as item, index}
-		<p class="block text-sm font-medium mb-1 text-gray-700">項目 {index + 1}</p>
-		<div class="flex items-center gap-2">
-			<div class="w-2/5">
-				<div class="relative">
-					<span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">¥</span>
-					<YenInput
-						value={item.amount}
-						on:input={(e) => updateEntryItem(index, 'amount', e.detail)}
+	<div>
+		<div class="flex items-center gap-2 mb-1">
+			<p class="block mb-1 text-sm font-medium text-gray-700">項目</p>
+			<button
+				type="button"
+				class=" bg-blue-50 text-blue-200 border border-blue-200 rounded-full p-0.5 hover:bg-blue-200 transition-colors"
+				on:click={addEntryItem}
+			>
+				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M12 6v6m0 0v6m0-6h6m-6 0H6"
 					/>
-				</div>
-			</div>
-			<div class="w-3/5">
-				<button
-					type="button"
-					class="w-full p-2 border border-gray-300 rounded-md shadow-sm bg-white cursor-pointer flex justify-between items-center"
-					on:click={() => (showCategoryPanel = true)}
-				>
-					<span class={item.categoryId ? 'text-gray-900' : 'text-gray-500'}>
-						{item.categoryId
-							? categoryGroups.flatMap((g) => g.categories).find((c) => c.id === item.categoryId)
-									?.name
-							: 'カテゴリーを選択'}
-					</span>
-					<svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M19 9l-7 7-7-7"
-						/>
-					</svg>
-				</button>
-			</div>
-			{#if index > 0}
-				<button
-					type="button"
-					class="text-red-600 hover:text-red-800"
-					on:click={() => removeEntryItem(index)}
-				>
-					削除
-				</button>
-			{/if}
+				</svg>
+			</button>
 		</div>
-	{/each}
+		<div class="space-y-2 mb-4">
+			{#each entryItems as item, index}
+				<div class="flex items-center gap-2">
+					<div class="w-2/5">
+						<div class="relative">
+							<span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">¥</span>
+							<YenInput bind:value={item.amount} />
+						</div>
+					</div>
+					<div class="w-3/5">
+						<button
+							type="button"
+							class="w-full p-2 border border-gray-300 rounded-md shadow-sm bg-white cursor-pointer flex justify-between items-center"
+							on:click={() => openCategoryPanel({ entryItemIndex: index })}
+						>
+							<span class={item.category ? 'text-gray-900' : 'text-gray-500'}>
+								{item.category?.name ?? 'カテゴリーを選択'}
+							</span>
+							<svg
+								class="w-5 h-5 text-gray-400"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M19 9l-7 7-7-7"
+								/>
+							</svg>
+						</button>
+					</div>
+					<button
+						type="button"
+						class="text-red-600 hover:text-red-800"
+						on:click={() => removeEntryItem(index)}
+					>
+						<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M6 18L18 6M6 6l12 12"
+							/>
+						</svg>
+					</button>
+				</div>
+			{/each}
+
+			<div class="flex justify-start"></div>
+		</div>
+	</div>
 
 	<div>
 		<label for="account" class="block text-sm font-medium mb-1 text-gray-700">資産</label>
@@ -172,10 +239,10 @@
 	</div>
 </form>
 
-{#if showCategoryPanel}
+{#if categoryPanelState.open}
 	<button
 		class="fixed inset-0 bg-black bg-opacity-50 z-40"
-		on:click={() => (showCategoryPanel = false)}
+		on:click={closeCategoryPanel}
 		transition:fade={{ duration: 200 }}
 	>
 		<button
@@ -193,8 +260,8 @@
 								<button
 									type="button"
 									class="p-2 text-sm border rounded-md hover:bg-blue-50 focus:ring-2 focus:ring-blue-500"
-									class:bg-blue-100={selectedCategory?.id === category.id}
-									on:click={() => selectCategory(category)}
+									class:bg-blue-100={currentlySelectedEntryItem?.category?.id === category.id}
+									on:click={() => selectCurrentItemCategory({ category })}
 								>
 									{category.name}
 								</button>

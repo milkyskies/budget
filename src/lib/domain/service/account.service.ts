@@ -1,8 +1,11 @@
 import { PrismaClient } from '@prisma/client';
-import type { CreateAccountDto } from 'src/routes/api/accounts/dto/create-account.dto';
+import type { CreateAccountDto } from 'src/routes/api/accounts/_dto/create-account.dto';
 import { AccountEntity } from '../entity/account.entity';
 import { EntryEntity } from '../entity/entry.entity';
-import type { UpdateAccountDto } from 'src/routes/api/accounts/dto/update-delete.dto';
+import type { UpdateAccountDto } from 'src/routes/api/accounts/_dto/update-delete.dto';
+import { createId } from '@paralleldrive/cuid2';
+import { EntryItemEntity } from '../entity/entry-item.entity';
+import { CategoryEntity } from '../entity/category.entity';
 
 export class AccountService {
 	private constructor(private readonly prisma: PrismaClient) {}
@@ -12,30 +15,51 @@ export class AccountService {
 	}
 
 	public async create(args: { account: CreateAccountDto }): Promise<AccountEntity> {
-		const prismaAccount = await this.prisma.account.create({
+		const entry = await this.prisma.entry.create({
 			data: {
-				budgetId: args.account.budgetId,
-				name: args.account.name,
-				type: args.account.type
-			},
-			include: {
-				entries: true
-			}
-		});
-
-		await this.prisma.entry.create({
-			data: {
-				amount: args.account.initialBalance,
+				id: createId(),
 				type: 'INCOME',
 				date: new Date(),
 				memo: '初期口座残高',
-				accountId: prismaAccount.id
+				entryItems: {
+					create: [
+						{
+							id: createId(),
+							amount: args.account.initialBalance
+						}
+					]
+				},
+				account: {
+					create: {
+						id: createId(),
+						name: args.account.name,
+						type: args.account.type,
+						budgetId: args.account.budgetId
+					}
+				}
+			},
+			include: {
+				entryItems: {
+					include: {
+						category: true
+					}
+				},
+				account: true
 			}
 		});
 
 		const account = AccountEntity.fromPrisma({
-			prismaAccount: prismaAccount,
-			entries: prismaAccount.entries.map((entry) => EntryEntity.fromPrisma({ prismaEntry: entry }).toValues())
+			prismaAccount: entry.account,
+			entries: [
+				EntryEntity.fromPrisma({
+					prismaEntry: entry,
+					entryItems: entry.entryItems.map((entryItem) =>
+						EntryItemEntity.fromPrisma({
+							prismaEntryItem: entryItem
+						}).toValues()
+					)
+				}).toValues()
+			]
 		});
 
 		return account;
@@ -57,12 +81,25 @@ export class AccountService {
 		const updatedAccount = await this.prisma.account.update({
 			where: { id: args.accountId },
 			data: args.data,
-			include: { entries: true }
+			include: {
+				entries: {
+					include: {
+						entryItems: true
+					}
+				}
+			}
 		});
 
 		return AccountEntity.fromPrisma({
 			prismaAccount: updatedAccount,
-			entries: updatedAccount.entries.map((entry) => EntryEntity.fromPrisma({ prismaEntry: entry }).toValues())
+			entries: updatedAccount.entries.map((entry) =>
+				EntryEntity.fromPrisma({
+					prismaEntry: entry,
+					entryItems: entry.entryItems.map((entryItem) =>
+						EntryItemEntity.fromPrisma({ prismaEntryItem: entryItem }).toValues()
+					)
+				}).toValues()
+			)
 		});
 	}
 }

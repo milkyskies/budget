@@ -14,7 +14,7 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(cuid()) @map("id")
+  id           String    @id @map("id")
   email        String    @unique @map("email")
   passwordHash String    @map("password_hash")
   budgets      Budget[]
@@ -26,7 +26,7 @@ model User {
 }
 
 model Session {
-  id        String    @id @default(cuid()) @map("id")
+  id        String    @id @map("id")
   userId    String    @map("user_id")
   expiresAt DateTime? @map("expires_at")
   user      User      @relation(fields: [userId], references: [id])
@@ -37,7 +37,7 @@ model Session {
 }
 
 model Budget {
-  id             String          @id @default(cuid()) @map("id")
+  id             String          @id @map("id")
   name           String          @map("name")
   userId         String          @map("user_id")
   user           User            @relation(fields: [userId], references: [id])
@@ -51,7 +51,7 @@ model Budget {
 }
 
 model CategoryGroup {
-  id         String     @id @default(cuid()) @map("id")
+  id         String     @id @map("id")
   name       String     @map("name")
   budgetId   String     @map("budget_id")
   budget     Budget     @relation(fields: [budgetId], references: [id])
@@ -63,7 +63,7 @@ model CategoryGroup {
 }
 
 model Category {
-  id              String        @id @default(cuid()) @map("id")
+  id              String        @id @map("id")
   name            String        @map("name")
   categoryGroupId String        @map("category_group_id")
   categoryGroup   CategoryGroup @relation(fields: [categoryGroupId], references: [id])
@@ -84,7 +84,7 @@ enum EntryType {
 
 // Always from the perspective of the account
 model Entry {
-  id String @id @default(cuid()) @map("id")
+  id String @id @map("id")
 
   type EntryType @map("type")
   date DateTime  @map("date")
@@ -106,13 +106,13 @@ model Entry {
 }
 
 model EntryItem {
-  id         String @id @default(cuid()) @map("id")
-  entryId    String @map("entry_id")
-  categoryId String @map("category_id")
-  amount     Int    @map("amount")
+  id         String  @id @map("id")
+  entryId    String  @map("entry_id")
+  categoryId String? @map("category_id")
+  amount     Int     @map("amount")
 
-  entry    Entry    @relation(fields: [entryId], references: [id])
-  category Category @relation(fields: [categoryId], references: [id])
+  entry    Entry     @relation(fields: [entryId], references: [id])
+  category Category? @relation(fields: [categoryId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -121,7 +121,7 @@ model EntryItem {
 }
 
 model ExternalParty {
-  id   String @id @default(cuid()) @map("id")
+  id   String @id @map("id")
   name String @map("name")
 
   entries Entry[]
@@ -140,7 +140,7 @@ enum AccountType {
 }
 
 model Account {
-  id     String      @id @default(cuid()) @map("id")
+  id     String      @id @map("id")
   name   String      @map("name")
   type   AccountType @map("type")
   budget Budget      @relation(fields: [budgetId], references: [id])

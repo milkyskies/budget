@@ -1,7 +1,7 @@
 import { error, json } from '@sveltejs/kit';
 import { getPrismaClient } from 'src/lib/app/database/prisma.client';
 import type { RequestHandler } from './$types';
-import { upsertEntryDtoSchema, type UpsertEntryDto } from './dto/upsert-entry.dto';
+import { upsertEntryDtoSchema, type UpsertEntryDto } from './_dto/upsert-entry.dto';
 import { EntryService } from 'src/lib/domain/service/entry.service';
 
 export const PUT: RequestHandler = async ({ request, locals }) => {

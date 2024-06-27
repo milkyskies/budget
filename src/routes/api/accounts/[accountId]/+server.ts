@@ -2,7 +2,7 @@ import { error, json } from '@sveltejs/kit';
 import { getPrismaClient } from 'src/lib/app/database/prisma.client';
 import { AccountService } from 'src/lib/domain/service/account.service';
 import type { RequestHandler } from './$types';
-import { updateAccountDtoSchema, type UpdateAccountDto } from '../dto/update-delete.dto';
+import { updateAccountDtoSchema, type UpdateAccountDto } from '../_dto/update-delete.dto';
 
 export const PATCH: RequestHandler = async ({ request, locals, params }) => {
 	const prismaClient = getPrismaClient();
