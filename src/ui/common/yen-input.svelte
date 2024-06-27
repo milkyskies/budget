@@ -1,6 +1,14 @@
 <script lang="ts">
 	export let value: number;
+	export let placeholder = '0';
+	export let disabled = false;
+	export let required = false;
+	export let name: string | undefined = undefined;
+	export let id: string | undefined = undefined;
+	export { className as class };
+
 	let displayValue = formatValue(value);
+	let className = '';
 
 	function handleInput(event: Event) {
 		const input = event.target as HTMLInputElement;
@@ -8,6 +16,7 @@
 		const formattedValue = formatValue(Number(rawValue));
 
 		displayValue = formattedValue;
+
 		value = Number(removeCommas(rawValue));
 	}
 
@@ -21,9 +30,13 @@
 </script>
 
 <input
-	class="w-full p-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-	value={displayValue}
+	class="w-full p-2 pl-8 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 {className}"
 	type="tel"
 	on:input={handleInput}
-	placeholder="0"
+	value={displayValue}
+	{placeholder}
+	{disabled}
+	{required}
+	{name}
+	{id}
 />
