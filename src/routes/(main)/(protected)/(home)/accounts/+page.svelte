@@ -5,6 +5,7 @@
 	import { AccountEntity } from 'src/lib/domain/entity/account.entity';
 	import Modal from 'src/ui/common/modal.svelte';
 	import type { PageServerData } from './$types';
+	import { invalidateAll } from '$app/navigation';
 
 	export let data: PageServerData;
 
@@ -14,7 +15,7 @@
 	let editingAccount = {
 		id: '',
 		name: '',
-		type: AccountType.CHECKING as AccountType
+		type: AccountType.CASH as AccountType
 	};
 
 	const ACCOUNT_TYPES = Object.values(AccountType);
@@ -26,7 +27,7 @@
 	};
 
 	function openNewAccountModal() {
-		newAccount = { name: '', type: AccountType.CHECKING, balance: 0 };
+		newAccount = { name: '', type: AccountType.CASH, balance: 0 };
 		openModal = 'NEW_ACCOUNT';
 	}
 
@@ -46,7 +47,7 @@
 		editingAccount = {
 			id: '',
 			name: '',
-			type: AccountType.CHECKING
+			type: AccountType.CASH
 		};
 	}
 
@@ -84,13 +85,11 @@
 			}
 		});
 
-		if (!response.ok || !response.data) {
+		if (!response.ok) {
 			throw new Error('Failed to update account');
 		}
 
-		accounts = accounts.map((a) =>
-			a.id === editingAccount.id ? AccountEntity.create(response.data) : a
-		);
+		invalidateAll();
 
 		closeModal();
 	}
@@ -100,13 +99,19 @@
 
 		const apiClient = getSvetchClient();
 
-		const response = await apiClient.delete(`api/accounts/${id}`);
+		const response = await apiClient.delete(`api/accounts/:accountId`, {
+			path: {
+				accountId: id
+			}
+		});
 
 		if (!response.ok) {
 			throw new Error('Failed to delete account');
 		}
 
-		accounts = accounts.filter((a) => a.id !== id);
+		invalidateAll();
+
+		closeModal();
 	}
 
 	function getJapaneseAccountType(type: AccountType): string {
@@ -170,33 +175,51 @@
 	<div class="flex flex-col lg:flex-row justify-between lg:items-center px-4 mt-4">
 		<button
 			class="bg-blue-50 text-blue-600 border-blue-200 border px-4 py-2 rounded-md hover:bg-blue-100 transition-colors"
-			on:click={() => (openModal = 'NEW_ACCOUNT')}>口座を追加</button
+			on:click={openNewAccountModal}>口座を追加</button
 		>
 	</div>
 </div>
-
 {#if openModal === 'NEW_ACCOUNT'}
 	<Modal onClose={closeModal} title="新しい口座を追加">
 		<form on:submit|preventDefault={addAccount} class="space-y-4">
-			<input
-				type="text"
-				bind:value={newAccount.name}
-				placeholder="口座名"
-				class="w-full p-2 border rounded"
-				required
-			/>
-			<select bind:value={newAccount.type} class="w-full p-2 border rounded bg-white" required>
-				{#each ACCOUNT_TYPES as type}
-					<option value={type}>{getJapaneseAccountType(type)}</option>
-				{/each}
-			</select>
-			<input
-				type="number"
-				bind:value={newAccount.balance}
-				placeholder="初期残高"
-				class="w-full p-2 border rounded"
-				required
-			/>
+			<div>
+				<label for="new-account-name" class="block text-sm font-medium mb-1 text-gray-700"
+					>名前</label
+				>
+				<input
+					id="new-account-name"
+					type="text"
+					bind:value={newAccount.name}
+					placeholder="名前を入力"
+					class="w-full p-2 border rounded"
+				/>
+			</div>
+			<div>
+				<label for="new-account-type" class="block text-sm font-medium mb-1 text-gray-700"
+					>種類</label
+				>
+				<select
+					id="new-account-type"
+					bind:value={newAccount.type}
+					class="w-full p-2 border rounded bg-white"
+				>
+					{#each ACCOUNT_TYPES as type}
+						<option value={type}>{getJapaneseAccountType(type)}</option>
+					{/each}
+				</select>
+			</div>
+			<div>
+				<label for="new-account-balance" class="block text-sm font-medium mb-1 text-gray-700"
+					>初期残高</label
+				>
+				<input
+					id="new-account-balance"
+					type="number"
+					bind:value={newAccount.balance}
+					placeholder="初期残高"
+					class="w-full p-2 border rounded"
+				/>
+			</div>
 			<button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
 				>口座を追加</button
 			>
@@ -206,35 +229,45 @@
 	<Modal onClose={closeModal} title="口座を編集">
 		{#if editingAccount}
 			<form on:submit|preventDefault={updateAccount} class="space-y-4">
-				<input
-					type="text"
-					bind:value={editingAccount.name}
-					placeholder="口座名"
-					class="w-full p-2 border rounded"
-					required
-				/>
-				<select
-					bind:value={editingAccount.type}
-					class="w-full p-2 border rounded bg-white"
-					required
-				>
-					{#each ACCOUNT_TYPES as type}
-						<option value={type}>{getJapaneseAccountType(type)}</option>
-					{/each}
-				</select>
+				<div>
+					<label for="edit-account-name" class="block text-sm font-medium mb-1 text-gray-700"
+						>名前</label
+					>
+					<input
+						id="edit-account-name"
+						type="text"
+						bind:value={editingAccount.name}
+						placeholder="名前を入力"
+						class="w-full p-2 border rounded"
+					/>
+				</div>
+				<div>
+					<label for="edit-account-type" class="block text-sm font-medium mb-1 text-gray-700"
+						>種類</label
+					>
+					<select
+						id="edit-account-type"
+						bind:value={editingAccount.type}
+						class="w-full p-2 border rounded bg-white"
+					>
+						{#each ACCOUNT_TYPES as type}
+							<option value={type}>{getJapaneseAccountType(type)}</option>
+						{/each}
+					</select>
+				</div>
 				<div class="space-y-2">
 					<button
 						type="submit"
 						class="w-full bg-blue-50 text-blue-600 border border-blue-200 p-2 rounded hover:bg-blue-100 transition-colors"
 					>
-						口座を更新
+						更新
 					</button>
 					<button
 						type="button"
 						on:click={() => deleteAccount(editingAccount?.id)}
 						class="w-full bg-red-50 text-red-600 border border-red-200 p-2 rounded hover:bg-red-100 transition-colors"
 					>
-						口座を削除
+						削除
 					</button>
 				</div>
 			</form>

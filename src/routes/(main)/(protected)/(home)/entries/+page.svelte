@@ -18,6 +18,8 @@
 
 	let openModal = 'NONE' as 'NEW_ENTRY' | 'EDIT_ENTRY' | 'NONE';
 
+	let editingEntry: EntryEntity | undefined;
+
 	async function addEntry(args: { entry: UpsertEntryDto }) {
 		const apiClient = getSvetchClient();
 		const response = await apiClient.put('api/entries', {
@@ -36,6 +38,31 @@
 		await invalidateAll();
 
 		openModal = 'NONE';
+	}
+
+	function openEditModal(entry: EntryEntity) {
+		editingEntry = entry;
+		openModal = 'EDIT_ENTRY';
+	}
+
+	async function updateEntry(args: { entry: UpsertEntryDto }) {
+		const apiClient = getSvetchClient();
+		const response = await apiClient.put(`api/entries`, {
+			body: {
+				...args.entry,
+				id: editingEntry!.id
+			}
+		});
+
+		if (!response.ok) {
+			alert('更新に失敗しました');
+
+			return;
+		}
+
+		await invalidateAll();
+		openModal = 'NONE';
+		editingEntry = undefined;
 	}
 </script>
 
@@ -63,7 +90,7 @@
 			</thead>
 			<tbody>
 				{#each entries as entry}
-					<tr class="border-t border-gray-100">
+					<tr class="border-t border-gray-100" on:click={() => openEditModal(entry)}>
 						<td class="py-3 px-4">{new Date(entry.date).toLocaleDateString('ja-JP')}</td>
 						<td class="py-3 px-4">{entry.category?.name}</td>
 						<td class="py-3 px-4 hidden lg:table-cell">{entry.memo}</td>
@@ -86,8 +113,25 @@
 		<EntryInput
 			{accounts}
 			{categoryGroups}
-			onAddEntry={async (entry) => {
-				await addEntry({ entry });
+			onSubmit={async (entry) => {
+				await updateEntry({ entry });
+			}}
+		/>
+	</Modal>
+{:else if openModal === 'EDIT_ENTRY'}
+	<Modal
+		onClose={() => {
+			openModal = 'NONE';
+			editingEntry = undefined;
+		}}
+		title="支出を編集"
+	>
+		<EntryInput
+			{accounts}
+			{categoryGroups}
+			initialEntry={editingEntry}
+			onSubmit={async (entry) => {
+				await updateEntry({ entry });
 			}}
 		/>
 	</Modal>
