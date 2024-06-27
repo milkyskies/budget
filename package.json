@@ -57,6 +57,7 @@
 	"dependencies": {
 		"@lucia-auth/adapter-prisma": "^4.0.1",
 		"@node-rs/argon2": "^1.8.3",
+		"@paralleldrive/cuid2": "^2.2.2",
 		"@prisma/client": "^5.13.0",
 		"dayjs": "^1.11.11",
 		"javascript-time-ago": "^2.5.10",

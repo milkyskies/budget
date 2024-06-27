@@ -2,8 +2,8 @@ import { error, json } from '@sveltejs/kit';
 import { getPrismaClient } from 'src/lib/app/database/prisma.client';
 import { AccountService } from 'src/lib/domain/service/account.service';
 import type { RequestHandler } from './$types';
-import { createAccountDtoSchema, type CreateAccountDto } from './dto/create-account.dto';
-import { updateAccountDtoSchema, type UpdateAccountDto } from './dto/update-delete.dto';
+import { createAccountDtoSchema, type CreateAccountDto } from './_dto/create-account.dto';
+import { updateAccountDtoSchema, type UpdateAccountDto } from './_dto/update-delete.dto';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	const prismaClient = getPrismaClient();

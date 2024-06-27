@@ -7,7 +7,7 @@
 	import type { PageServerData } from './$types';
 	import EntryInput from './_components/entry-input.svelte';
 	import { getSvetchClient } from 'src/lib/app/api/svetch.client';
-	import type { UpsertEntryDto } from 'src/routes/api/entries/dto/upsert-entry.dto';
+	import type { UpsertEntryDto } from 'src/routes/api/entries/_dto/upsert-entry.dto';
 	import { invalidateAll } from '$app/navigation';
 
 	export let data: PageServerData;
