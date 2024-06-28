@@ -158,7 +158,7 @@
 							on:click={() => openCategoryPanel({ entryItemIndex: index })}
 						>
 							<span class={item.category ? 'text-gray-900' : 'text-gray-500'}>
-								{item.category?.name ?? 'カテゴリーを選択'}
+								{item.category?.name ?? '分類を選択'}
 							</span>
 							<svg
 								class="w-5 h-5 text-gray-400"
@@ -267,7 +267,7 @@
 			transition:slide={{ duration: 300, axis: 'y' }}
 		>
 			<div class="p-4">
-				<h3 class="text-lg font-medium text-gray-900 mb-4">カテゴリーを選択</h3>
+				<h3 class="text-lg font-medium text-gray-900 mb-4">分類を選択</h3>
 				{#each categoryGroups as group}
 					<div class="mb-4">
 						<h4 class="font-medium text-gray-700 mb-2">{group.name}</h4>
