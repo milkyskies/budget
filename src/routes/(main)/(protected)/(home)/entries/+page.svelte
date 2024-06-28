@@ -112,7 +112,21 @@
 									<div class="space-y-2">
 										{#each entry.entryItems as item}
 											<div class="flex justify-between items-center text-sm">
-												<span class="text-gray-700">{item.category?.name ?? ''}</span>
+												<span class="text-gray-700">
+													{#if entry.type === 'EXPENSE'}
+														{#if item.category}
+															{item.category?.name}
+														{:else if entry.account?.type === 'CREDIT_CARD'}
+															<span class="text-gray-400">分類が不要</span>
+														{:else}
+															<span class="px-2 text-xs py-1 bg-yellow-300 rounded-xl"
+																>{'分類が未登録'}</span
+															>
+														{/if}
+													{:else if entry.type === 'INCOME'}
+														収入
+													{/if}
+												</span>
 												<span class="font-medium"
 													>{formatCurrency(entry.getTransactionSign() * item.amount)}</span
 												>
