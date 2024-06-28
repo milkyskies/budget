@@ -3,7 +3,7 @@ import { EntryEntity } from '../entity/entry.entity';
 import type { PrismaClient } from '@prisma/client';
 import { createId } from '@paralleldrive/cuid2';
 import { EntryItemEntity } from '../entity/entry-item.entity';
-import { CategoryEntity } from '../entity/category.entity';
+import { AccountEntity } from '../entity/account.entity';
 
 export class EntryService {
 	private constructor(private readonly prismaClient: PrismaClient) {}
@@ -21,10 +21,24 @@ export class EntryService {
 					data: {
 						...entryData,
 						entryItems: {
-							create: entryData.entryItems.map((entryItem) => ({
-								id: createId(),
-								amount: entryItem.amount,
-								categoryId: entryItem.categoryId
+							deleteMany: {
+								id: {
+									notIn: entryData.entryItems
+										.map((item) => item.id)
+										.filter((id): id is string => Boolean(id))
+								}
+							},
+							upsert: entryData.entryItems.map((entryItem) => ({
+								where: { id: entryItem.id ?? '' },
+								create: {
+									id: createId(),
+									amount: entryItem.amount,
+									categoryId: entryItem.categoryId
+								},
+								update: {
+									amount: entryItem.amount,
+									categoryId: entryItem.categoryId
+								}
 							}))
 						}
 					},
@@ -64,9 +78,15 @@ export class EntryService {
 			entryItems: prismaEntry.entryItems.map((entryItem) =>
 				EntryItemEntity.fromPrisma({
 					prismaEntryItem: entryItem
-				}).toValues()
+				})
 			),
-			account: prismaEntry.account ?? undefined
+			account: AccountEntity.fromPrisma({ prismaAccount: prismaEntry.account })
+		});
+	}
+
+	public async delete(args: { entryId: string }): Promise<void> {
+		await this.prismaClient.entry.delete({
+			where: { id: args.entryId }
 		});
 	}
 }

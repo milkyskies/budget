@@ -56,9 +56,9 @@ export class AccountService {
 					entryItems: entry.entryItems.map((entryItem) =>
 						EntryItemEntity.fromPrisma({
 							prismaEntryItem: entryItem
-						}).toValues()
+						})
 					)
-				}).toValues()
+				})
 			]
 		});
 
@@ -66,14 +66,8 @@ export class AccountService {
 	}
 
 	public async delete(args: { accountId: string }): Promise<void> {
-		await this.prisma.$transaction(async (tx) => {
-			await tx.entry.deleteMany({
-				where: { accountId: args.accountId }
-			});
-
-			await tx.account.delete({
-				where: { id: args.accountId }
-			});
+		await this.prisma.account.delete({
+			where: { id: args.accountId }
 		});
 	}
 
@@ -96,9 +90,9 @@ export class AccountService {
 				EntryEntity.fromPrisma({
 					prismaEntry: entry,
 					entryItems: entry.entryItems.map((entryItem) =>
-						EntryItemEntity.fromPrisma({ prismaEntryItem: entryItem }).toValues()
+						EntryItemEntity.fromPrisma({ prismaEntryItem: entryItem })
 					)
-				}).toValues()
+				})
 			)
 		});
 	}

@@ -1,4 +1,4 @@
-import dayjs from '$lib/app/time/dayjs';
+import { appDayjs } from '$lib/app/time/dayjs';
 import type { AccountType, Account as PrismaAccount } from '@prisma/client';
 import { EntryEntity, type EntryValues } from './entry.entity';
 
@@ -17,8 +17,8 @@ export class AccountEntity {
 	public readonly name: string;
 	public readonly budgetId: string;
 	public readonly type: AccountType;
-	public readonly createdAt: dayjs.Dayjs;
-	public readonly updatedAt: dayjs.Dayjs;
+	public readonly createdAt: appDayjs.Dayjs;
+	public readonly updatedAt: appDayjs.Dayjs;
 	public readonly entries?: EntryEntity[];
 
 	private constructor(values: AccountValues) {
@@ -26,8 +26,8 @@ export class AccountEntity {
 		this.name = values.name;
 		this.budgetId = values.budgetId;
 		this.type = values.type;
-		this.createdAt = dayjs(values.createdAt);
-		this.updatedAt = dayjs(values.updatedAt);
+		this.createdAt = appDayjs(values.createdAt);
+		this.updatedAt = appDayjs(values.updatedAt);
 		this.entries = values.entries?.map((entry) => EntryEntity.create(entry));
 	}
 
@@ -37,7 +37,7 @@ export class AccountEntity {
 
 	public static fromPrisma(args: {
 		prismaAccount: PrismaAccount;
-		entries: EntryValues[];
+		entries?: EntryEntity[];
 	}): AccountEntity {
 		return AccountEntity.create({
 			id: args.prismaAccount.id,
@@ -46,7 +46,7 @@ export class AccountEntity {
 			type: args.prismaAccount.type,
 			createdAt: args.prismaAccount.createdAt,
 			updatedAt: args.prismaAccount.updatedAt,
-			entries: args.entries
+			entries: args.entries?.map((entry) => entry.toValues())
 		});
 	}
 

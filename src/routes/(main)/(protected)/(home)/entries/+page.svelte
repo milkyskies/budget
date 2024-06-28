@@ -9,6 +9,8 @@
 	import { getSvetchClient } from 'src/lib/app/api/svetch.client';
 	import type { UpsertEntryDto } from 'src/routes/api/entries/_dto/upsert-entry.dto';
 	import { invalidateAll } from '$app/navigation';
+	import { groupBy } from 'lodash-es';
+	import { appDayjs } from 'src/lib/app/time/dayjs';
 
 	export let data: PageServerData;
 
@@ -19,26 +21,6 @@
 	let openModal = 'NONE' as 'NEW_ENTRY' | 'EDIT_ENTRY' | 'NONE';
 
 	let editingEntry: EntryEntity | undefined;
-
-	async function addEntry(args: { entry: UpsertEntryDto }) {
-		const apiClient = getSvetchClient();
-		const response = await apiClient.put('api/entries', {
-			body: {
-				...args.entry
-			}
-		});
-
-		if (!response.ok) {
-			// TODO: Show error message to user
-			alert('失敗しました');
-
-			return;
-		}
-
-		await invalidateAll();
-
-		openModal = 'NONE';
-	}
 
 	function openEditModal(entry: EntryEntity) {
 		editingEntry = entry;
@@ -61,8 +43,36 @@
 		}
 
 		await invalidateAll();
-		openModal = 'NONE';
-		editingEntry = undefined;
+	}
+
+	async function deleteEntry(args: { entryId: string }) {
+		const apiClient = getSvetchClient();
+		const response = await apiClient.delete(`api/entries/:entryId`, {
+			path: {
+				entryId: args.entryId
+			}
+		});
+
+		if (!response.ok) {
+			alert('削除に失敗しました');
+
+			return;
+		}
+
+		await invalidateAll();
+	}
+
+	function groupEntriesByDate(
+		entries: EntryEntity[]
+	): { date: appDayjs.Dayjs; entries: EntryEntity[] }[] {
+		const grouped = groupBy<EntryEntity>(entries, (entry) => entry.date.format('YYYY-MM-DD'));
+
+		return Object.entries(grouped)
+			.map(([dateString, entries]) => ({
+				date: appDayjs(dateString),
+				entries
+			}))
+			.sort((a, b) => b.date.valueOf() - a.date.valueOf());
 	}
 </script>
 
@@ -78,27 +88,36 @@
 		</div>
 	</header>
 
-	<div class="bg-white shadow-sm rounded-lg m-4 overflow-x-auto border">
-		<table class="w-full">
-			<thead class="text-gray-700">
-				<tr>
-					<th class="text-left py-3 px-4">日付</th>
-					<th class="text-left py-3 px-4">カテゴリー</th>
-					<th class="text-left py-3 px-4 hidden lg:table-cell">説明</th>
-					<th class="text-right py-3 px-4">金額</th>
-				</tr>
-			</thead>
-			<tbody>
-				{#each entries as entry}
-					<tr class="border-t border-gray-100" on:click={() => openEditModal(entry)}>
-						<td class="py-3 px-4">{new Date(entry.date).toLocaleDateString('ja-JP')}</td>
-						<td class="py-3 px-4">{entry.category?.name}</td>
-						<td class="py-3 px-4 hidden lg:table-cell">{entry.memo}</td>
-						<td class="py-3 px-4 text-right">{formatCurrency(entry.amount)}</td>
-					</tr>
-				{/each}
-			</tbody>
-		</table>
+	<div class="bg-gray-50 p-4">
+		{#each groupEntriesByDate(entries) as { date, entries: groupedEntries }}
+			<div class="mb-6">
+				<h3 class="text-lg font-semibold text-gray-700 mb-2">{date.format('MMMMDD日(dd)')}</h3>
+				<div class="space-y-3">
+					{#each groupedEntries as entry}
+						<button class="w-full text-left" on:click={() => openEditModal(entry)}>
+							<div class="bg-white rounded-lg shadow p-4">
+								<div class="flex justify-between items-start">
+									{#if entry.externalParty}
+										<span class="text-gray-800 font-medium mb-2">{entry.externalParty.name}</span>
+									{/if}
+								</div>
+								{#if entry.memo}
+									<p class="text-gray-600 text-sm mb-3">{entry.memo}</p>
+								{/if}
+								<div class="space-y-2">
+									{#each entry.entryItems as item}
+										<div class="flex justify-between items-center text-sm">
+											<span class="text-gray-700">{item.category?.name ?? 'カテゴリーなし'}</span>
+											<span class="font-medium">{formatCurrency(item.amount)}</span>
+										</div>
+									{/each}
+								</div>
+							</div>
+						</button>
+					{/each}
+				</div>
+			</div>
+		{/each}
 	</div>
 </div>
 
@@ -115,6 +134,8 @@
 			{categoryGroups}
 			onSubmit={async (entry) => {
 				await updateEntry({ entry });
+				openModal = 'NONE';
+				editingEntry = undefined;
 			}}
 		/>
 	</Modal>
@@ -132,6 +153,13 @@
 			initialEntry={editingEntry}
 			onSubmit={async (entry) => {
 				await updateEntry({ entry });
+				openModal = 'NONE';
+				editingEntry = undefined;
+			}}
+			onDelete={async (entryId) => {
+				await deleteEntry({ entryId });
+				openModal = 'NONE';
+				editingEntry = undefined;
 			}}
 		/>
 	</Modal>

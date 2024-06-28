@@ -1,4 +1,4 @@
-import dayjs from '$lib/app/time/dayjs';
+import { appDayjs } from '$lib/app/time/dayjs';
 import { error } from '@sveltejs/kit';
 import { BudgetService } from 'src/lib/domain/service/budget.service';
 import type { PageServerLoad } from './$types';
@@ -11,12 +11,16 @@ export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) throw new Error('Not logged in');
 
 	// TODO: use [[budgetId]]
-	const budget = await budgetService.getBudgetFromMonth({ userId: locals.user.id, month: dayjs() });
+	const budget = await budgetService.getBudgetFromMonth({
+		userId: locals.user.id,
+		month: appDayjs()
+	});
 
 	if (!budget) error(404, 'Budget not found');
 
 	const entries = await budgetService.getEntries({ budgetId: budget.id });
 
+	// get separately (not from budget)
 	const categoryGroups = budget.categoryGroups;
 
 	return {

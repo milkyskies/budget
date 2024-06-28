@@ -1,33 +1,34 @@
 <script lang="ts">
+	import { appDayjs } from '$lib/app/time/dayjs';
+	import { EntryType } from '@prisma/client';
 	import type { AccountEntity } from 'src/lib/domain/entity/account.entity';
 	import type { CategoryGroupEntity } from 'src/lib/domain/entity/category-group.entity';
 	import type { CategoryEntity } from 'src/lib/domain/entity/category.entity';
+	import type { EntryEntity } from 'src/lib/domain/entity/entry.entity';
+	import type { UpsertEntryDto } from 'src/routes/api/entries/_dto/upsert-entry.dto';
 	import { fade, slide } from 'svelte/transition';
 	import YenInput from '../../../../../../ui/common/yen-input.svelte';
-	import type {
-		UpsertEntryDto,
-		UpsertEntryItemDto
-	} from 'src/routes/api/entries/_dto/upsert-entry.dto';
-	import { EntryType } from '@prisma/client';
-	import type { EntryEntity } from 'src/lib/domain/entity/entry.entity';
-	import type { EntryItemEntity } from 'src/lib/domain/entity/entry-item.entity';
-	import dayjs from '$lib/app/time/dayjs';
 
 	export let categoryGroups: CategoryGroupEntity[];
 	export let accounts: AccountEntity[];
 	export let initialEntry: EntryEntity | undefined = undefined;
 	export let onSubmit: (entry: UpsertEntryDto) => Promise<void>;
+	export let onDelete: (entryId: string) => Promise<void> = () => {
+		throw new Error('削除できません。');
+	};
 
 	type EntryItem = {
+		id?: string;
 		amount: number;
 		category?: CategoryEntity;
 	};
 
-	let date = dayjs();
+	let date = appDayjs();
 	let memo = initialEntry?.memo ?? '';
 	let selectedAccount = initialEntry
 		? accounts.find((a) => a.id === initialEntry.accountId)
 		: accounts[0];
+	let externalParty = initialEntry?.externalPartyId ?? '';
 
 	let entryItems: EntryItem[] = initialEntry?.entryItems ?? [{ amount: 0 }];
 
@@ -66,7 +67,11 @@
 				id: initialEntry?.id,
 				accountId: selectedAccount.id,
 				date: date.toDate(),
-				entryItems,
+				entryItems: entryItems.map((item) => ({
+					id: item.id,
+					amount: item.amount,
+					categoryId: item.category?.id
+				})),
 				memo,
 				type: EntryType.EXPENSE
 			});
@@ -77,6 +82,16 @@
 		}
 	}
 
+	async function handleDelete() {
+		if (!initialEntry) throw new Error('No entry');
+
+		const isConfirmed = confirm('本当に削除しますか？');
+
+		if (!isConfirmed) return;
+
+		await onDelete(initialEntry.id);
+		clearForm();
+	}
 	function openCategoryPanel(args: { entryItemIndex: number }) {
 		categoryPanelState = {
 			open: true,
@@ -91,6 +106,10 @@
 	function addEntryItem() {
 		entryItems = [...entryItems, { amount: 0 }];
 	}
+
+	function removeEntryItem(index: number) {
+		entryItems = entryItems.filter((_, i) => i !== index);
+	}
 </script>
 
 <form on:submit|preventDefault={handleSubmit} class="space-y-4 pb-24">
@@ -101,15 +120,16 @@
 			id="externalParty"
 			type="text"
 			class="p-2 border border-gray-300 rounded-md shadow-sm w-full"
+			bind:value={externalParty}
 		/>
 		<!-- </div> -->
 	</div>
 	<div>
-		<div class="flex items-center gap-2 mb-1">
+		<div class="flex gap-2 items-end">
 			<p class="block mb-1 text-sm font-medium text-gray-700">項目</p>
 			<button
 				type="button"
-				class=" bg-blue-50 text-blue-200 border border-blue-200 rounded-full p-0.5 hover:bg-blue-200 transition-colors"
+				class=" bg-gray-50 mb-1 text-gray-400 border border-gray-300 rounded-full transition-colors"
 				on:click={addEntryItem}
 			>
 				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -155,20 +175,18 @@
 							</svg>
 						</button>
 					</div>
-					<button
-						type="button"
-						class="text-red-600 hover:text-red-800"
-						on:click={() => removeEntryItem(index)}
-					>
-						<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M6 18L18 6M6 6l12 12"
-							/>
-						</svg>
-					</button>
+					{#if entryItems.length > 1}
+						<button type="button" class="text-gray-400" on:click={() => removeEntryItem(index)}>
+							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M6 18L18 6M6 6l12 12"
+								/>
+							</svg>
+						</button>
+					{/if}
 				</div>
 			{/each}
 
@@ -213,9 +231,7 @@
 			<button
 				type="button"
 				class="w-full bg-red-50 text-red-600 border border-red-200 p-2 rounded hover:bg-red-100 transition-colors"
-				on:click={() => {
-					/* Add delete function here */
-				}}
+				on:click={handleDelete}
 			>
 				削除
 			</button>

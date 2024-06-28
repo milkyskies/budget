@@ -33,13 +33,13 @@ export class EntryItemEntity {
 
 	public static fromPrisma(args: {
 		prismaEntryItem: PrismaEntryItem;
-		category?: CategoryValues;
+		category?: CategoryEntity;
 	}): EntryItemEntity {
 		return EntryItemEntity.create({
 			id: args.prismaEntryItem.id,
 			amount: args.prismaEntryItem.amount,
-			categoryId: args.prismaEntryItem.categoryId,
-			category: args.category ?? undefined,
+			categoryId: args.prismaEntryItem.categoryId ?? undefined,
+			category: args.category?.toValues(),
 			createdAt: args.prismaEntryItem.createdAt,
 			updatedAt: args.prismaEntryItem.updatedAt
 		});
