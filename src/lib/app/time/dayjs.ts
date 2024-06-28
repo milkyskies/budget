@@ -11,4 +11,4 @@ dayjs.extend(minMax);
 dayjs.locale('ja');
 dayjs.tz.setDefault('Asia/Tokyo');
 
-export default dayjs;
+export { dayjs as appDayjs };

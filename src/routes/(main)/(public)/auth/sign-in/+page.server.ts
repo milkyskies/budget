@@ -3,6 +3,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import { luciaClient } from 'src/lib/app/authn/lucia.client';
 import { getPrismaClient } from 'src/lib/app/database/prisma.client';
 import type { Actions } from './$types';
+import { createId } from '@paralleldrive/cuid2';
 
 export const actions: Actions = {
 	default: async (event) => {
@@ -51,6 +52,7 @@ export const actions: Actions = {
 			},
 			update: {},
 			create: {
+				id: createId(),
 				email,
 				passwordHash
 			}

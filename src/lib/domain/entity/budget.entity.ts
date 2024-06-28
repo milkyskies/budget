@@ -1,4 +1,4 @@
-import dayjs from '$lib/app/time/dayjs';
+import { appDayjs } from '$lib/app/time/dayjs';
 import type { Budget as PrismaBudget } from '@prisma/client';
 import { AccountEntity, type AccountValues } from './account.entity';
 import { CategoryGroupEntity, type CategoryGroupValues } from './category-group.entity';
@@ -19,8 +19,8 @@ export class BudgetEntity {
 	public readonly userId: string;
 	public readonly categoryGroups: CategoryGroupEntity[];
 	public readonly accounts: AccountEntity[];
-	public readonly createdAt: dayjs.Dayjs;
-	public readonly updatedAt: dayjs.Dayjs;
+	public readonly createdAt: appDayjs.Dayjs;
+	public readonly updatedAt: appDayjs.Dayjs;
 
 	private constructor(args: BudgetValues) {
 		this.id = args.id;
@@ -32,8 +32,8 @@ export class BudgetEntity {
 		);
 
 		this.accounts = args.accounts.map((account) => AccountEntity.create(account));
-		this.createdAt = dayjs(args.createdAt);
-		this.updatedAt = dayjs(args.updatedAt);
+		this.createdAt = appDayjs(args.createdAt);
+		this.updatedAt = appDayjs(args.updatedAt);
 	}
 
 	public static create(args: BudgetValues): BudgetEntity {
@@ -42,15 +42,15 @@ export class BudgetEntity {
 
 	public static fromPrisma(args: {
 		budget: PrismaBudget;
-		categoryGroups: CategoryGroupValues[];
-		accounts: AccountValues[];
+		categoryGroups: CategoryGroupEntity[];
+		accounts: AccountEntity[];
 	}): BudgetEntity {
 		return BudgetEntity.create({
 			id: args.budget.id,
 			name: args.budget.name,
 			userId: args.budget.userId,
-			categoryGroups: args.categoryGroups,
-			accounts: args.accounts,
+			categoryGroups: args.categoryGroups.map((categoryGroup) => categoryGroup.toValues()),
+			accounts: args.accounts.map((account) => account.toValues()),
 			createdAt: args.budget.createdAt,
 			updatedAt: args.budget.updatedAt
 		});

@@ -1,4 +1,3 @@
-import dayjs from '$lib/app/time/dayjs';
 import type { EntryType, Entry as PrismaEntry } from '@prisma/client';
 import { AccountEntity, type AccountValues } from './account.entity';
 import {
@@ -6,6 +5,7 @@ import {
 	type EntryItemEntityValues as EntryItemValues
 } from './entry-item.entity';
 import { ExternalPartyEntity, type ExternalPartyValues } from './external-party.entity';
+import { appDayjs } from '$lib/app/time/dayjs';
 
 export type EntryValues = {
 	id: string;
@@ -27,7 +27,7 @@ export type EntryValues = {
 export class EntryEntity {
 	public readonly id: string;
 	public readonly type: EntryType;
-	public readonly date: Date;
+	public readonly date: appDayjs.Dayjs;
 	public readonly memo: string;
 	public readonly accountId: string;
 	public readonly account?: AccountEntity;
@@ -36,13 +36,13 @@ export class EntryEntity {
 	public readonly entryItems: EntryItemEntity[];
 	public readonly externalPartyId?: string;
 	public readonly externalParty?: ExternalPartyEntity;
-	public readonly createdAt: dayjs.Dayjs;
-	public readonly updatedAt: dayjs.Dayjs;
+	public readonly createdAt: appDayjs.Dayjs;
+	public readonly updatedAt: appDayjs.Dayjs;
 
 	private constructor(args: EntryValues) {
 		this.id = args.id;
 		this.type = args.type;
-		this.date = args.date;
+		this.date = appDayjs(args.date);
 		this.memo = args.memo;
 		this.accountId = args.accountId;
 
@@ -65,8 +65,8 @@ export class EntryEntity {
 
 		this.entryItems = args.entryItems.map((item) => EntryItemEntity.create(item));
 
-		this.createdAt = dayjs(args.createdAt);
-		this.updatedAt = dayjs(args.updatedAt);
+		this.createdAt = appDayjs(args.createdAt);
+		this.updatedAt = appDayjs(args.updatedAt);
 	}
 
 	public static create(args: EntryValues): EntryEntity {
@@ -75,10 +75,10 @@ export class EntryEntity {
 
 	public static fromPrisma(args: {
 		prismaEntry: PrismaEntry;
-		entryItems: EntryItemValues[];
-		account?: AccountValues;
-		destinationAccount?: AccountValues;
-		externalParty?: ExternalPartyValues;
+		entryItems: EntryItemEntity[];
+		account?: AccountEntity;
+		destinationAccount?: AccountEntity;
+		externalParty?: ExternalPartyEntity;
 	}): EntryEntity {
 		return EntryEntity.create({
 			id: args.prismaEntry.id,
@@ -86,12 +86,12 @@ export class EntryEntity {
 			date: args.prismaEntry.date,
 			memo: args.prismaEntry.memo,
 			accountId: args.prismaEntry.accountId,
-			account: args.account ?? undefined,
+			account: args.account?.toValues(),
 			destinationAccountId: args.prismaEntry.destinationAccountId ?? undefined,
-			destinationAccount: args.destinationAccount ?? undefined,
+			destinationAccount: args.destinationAccount?.toValues(),
 			externalPartyId: args.prismaEntry.externalPartyId ?? undefined,
 			externalParty: args.externalParty ?? undefined,
-			entryItems: args.entryItems,
+			entryItems: args.entryItems.map((entryItem) => entryItem.toValues()),
 			createdAt: args.prismaEntry.createdAt,
 			updatedAt: args.prismaEntry.updatedAt
 		});
@@ -101,7 +101,7 @@ export class EntryEntity {
 		return {
 			id: this.id,
 			type: this.type,
-			date: this.date,
+			date: this.date.toDate(),
 			memo: this.memo,
 			accountId: this.accountId,
 			account: this.account?.toValues(),

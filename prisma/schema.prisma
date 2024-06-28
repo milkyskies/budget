@@ -94,7 +94,7 @@ model Entry {
   destinationAccountId String? @map("destination_account_id") // For transfers
   externalPartyId      String? @map("external_party_id") // For income and expenses
 
-  account            Account        @relation("Account", fields: [accountId], references: [id])
+  account            Account        @relation("Account", fields: [accountId], references: [id], onDelete: Cascade)
   destinationAccount Account?       @relation("DestinationAccount", fields: [destinationAccountId], references: [id])
   externalParty      ExternalParty? @relation(fields: [externalPartyId], references: [id])
   entryItems         EntryItem[]
@@ -111,7 +111,7 @@ model EntryItem {
   categoryId String? @map("category_id")
   amount     Int     @map("amount")
 
-  entry    Entry     @relation(fields: [entryId], references: [id])
+  entry    Entry     @relation(fields: [entryId], references: [id], onDelete: Cascade)
   category Category? @relation(fields: [categoryId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")

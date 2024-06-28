@@ -14,7 +14,8 @@ export const upsertEntryDtoSchema = z.object({
 	date: z.coerce.date(),
 	accountId: z.string(),
 	destinationAccountId: z.string().optional(),
-	externalPartyId: z.string().optional(),
+	existingExternalPartyId: z.string().optional(),
+	newExternalPartyName: z.string().optional(),
 	entryItems: z.array(upsertEntryItemDtoSchema)
 });
 

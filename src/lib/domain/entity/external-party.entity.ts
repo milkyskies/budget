@@ -1,3 +1,5 @@
+import type { ExternalParty as PrismaExternalParty } from '@prisma/client';
+
 export type ExternalPartyValues = {
 	id: string;
 	name: string;
@@ -29,5 +31,14 @@ export class ExternalPartyEntity {
 			createdAt: this.createdAt,
 			updatedAt: this.updatedAt
 		};
+	}
+
+	public static fromPrisma(args: { externalParty: PrismaExternalParty }): ExternalPartyEntity {
+		return ExternalPartyEntity.create({
+			id: args.externalParty.id,
+			name: args.externalParty.name,
+			createdAt: args.externalParty.createdAt,
+			updatedAt: args.externalParty.updatedAt
+		});
 	}
 }

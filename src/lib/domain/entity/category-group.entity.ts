@@ -1,4 +1,4 @@
-import dayjs from '$lib/app/time/dayjs';
+import { appDayjs } from '$lib/app/time/dayjs';
 import type { CategoryGroup as PrismaCategoryGroup } from '@prisma/client';
 import { CategoryEntity, type CategoryValues } from './category.entity';
 
@@ -16,16 +16,16 @@ export class CategoryGroupEntity {
 	public readonly name: string;
 	public readonly budgetId: string;
 	public readonly categories: CategoryEntity[];
-	public readonly createdAt: dayjs.Dayjs;
-	public readonly updatedAt: dayjs.Dayjs;
+	public readonly createdAt: appDayjs.Dayjs;
+	public readonly updatedAt: appDayjs.Dayjs;
 
 	private constructor(args: CategoryGroupValues) {
 		this.id = args.id;
 		this.name = args.name;
 		this.budgetId = args.budgetId;
 		this.categories = args.categories.map((category) => CategoryEntity.create(category));
-		this.createdAt = dayjs(args.createdAt);
-		this.updatedAt = dayjs(args.updatedAt);
+		this.createdAt = appDayjs(args.createdAt);
+		this.updatedAt = appDayjs(args.updatedAt);
 	}
 
 	public static create(args: CategoryGroupValues): CategoryGroupEntity {
@@ -34,13 +34,13 @@ export class CategoryGroupEntity {
 
 	public static fromPrisma(args: {
 		categoryGroup: PrismaCategoryGroup;
-		categories: CategoryValues[];
+		categories: CategoryEntity[];
 	}): CategoryGroupEntity {
 		return CategoryGroupEntity.create({
 			id: args.categoryGroup.id,
 			name: args.categoryGroup.name,
 			budgetId: args.categoryGroup.budgetId,
-			categories: args.categories,
+			categories: args.categories.map((category) => category.toValues()),
 			createdAt: args.categoryGroup.createdAt,
 			updatedAt: args.categoryGroup.updatedAt
 		});

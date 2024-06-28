@@ -211,16 +211,22 @@
 				</select>
 			</div>
 			<div>
-				<label for="new-account-balance" class="block text-sm font-medium mb-1 text-gray-700"
-					>初期残高</label
-				>
+				<label for="new-account-balance" class="block text-sm font-medium mb-1 text-gray-700">
+					{#if newAccount.type === 'CREDIT_CARD'}
+						初期負債
+					{:else}
+						初期残高
+					{/if}
+				</label>
 				<div class="relative">
-					<span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">¥</span>
+					<span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+						<span>¥</span>
+					</span>
 
 					<YenInput
 						id="new-account-balance"
 						bind:value={newAccount.balance}
-						placeholder="初期残高"
+						placeholder={newAccount.type === 'CREDIT_CARD' ? '初期負債' : '初期残高'}
 					/>
 				</div>
 			</div>
