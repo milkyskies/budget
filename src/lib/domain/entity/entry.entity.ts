@@ -118,4 +118,24 @@ export class EntryEntity {
 	public get totalAmount(): number {
 		return this.entryItems.reduce((acc, item) => acc + item.amount, 0);
 	}
+
+	public getTransferSign(args: { currentAccount: AccountEntity }): -1 | 1 {
+		if (this.type !== 'TRANSFER') throw new Error('Not a transfer');
+
+		if (this.accountId === args.currentAccount.id) {
+			return 1;
+		} else if (this.destinationAccountId === args.currentAccount.id) {
+			return -1;
+		} else {
+			throw new Error('Invalid transfer');
+		}
+	}
+
+	public getTransactionSign(): -1 | 1 {
+		if (this.type !== 'EXPENSE' && this.type !== 'INCOME') {
+			throw new Error('Not a transaction');
+		}
+
+		return this.type === 'EXPENSE' ? -1 : 1;
+	}
 }
