@@ -7,7 +7,7 @@
 	import type { PageServerData } from './$types';
 	import EntryInput from './_components/entry-input.svelte';
 	import { getSvetchClient } from 'src/lib/app/api/svetch.client';
-	import type { UpsertEntryDto } from 'src/routes/api/entries/_dto/upsert-entry.dto';
+	import type { UpsertEntryDto } from 'src/lib/domain/dto/entry.dto';
 	import { invalidateAll } from '$app/navigation';
 	import { groupBy } from 'lodash-es';
 	import { appDayjs } from 'src/lib/app/time/dayjs';
@@ -29,10 +29,13 @@
 
 	async function updateEntry(args: { entry: UpsertEntryDto }) {
 		const apiClient = getSvetchClient();
-		const response = await apiClient.put(`api/entries`, {
+		const response = await apiClient.put(`api/budgets/:budgetId/entries`, {
 			body: {
 				...args.entry,
 				id: editingEntry?.id
+			},
+			path: {
+				budgetId: data.budgetId
 			}
 		});
 
@@ -47,9 +50,10 @@
 
 	async function deleteEntry(args: { entryId: string }) {
 		const apiClient = getSvetchClient();
-		const response = await apiClient.delete(`api/entries/:entryId`, {
+		const response = await apiClient.delete(`api/budgets/:budgetId/entries/:entryId`, {
 			path: {
-				entryId: args.entryId
+				entryId: args.entryId,
+				budgetId: data.budgetId
 			}
 		});
 

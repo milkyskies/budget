@@ -2,13 +2,10 @@ import { error, json } from '@sveltejs/kit';
 import { getPrismaClient } from 'src/lib/app/database/prisma.client';
 import { AccountService } from 'src/lib/domain/service/account.service';
 import type { RequestHandler } from './$types';
-import { updateAccountDtoSchema, type UpdateAccountDto } from '../_dto/update-delete.dto';
+import { updateAccountDtoSchema, type UpdateAccountDto } from 'src/lib/domain/dto/account.dto';
 
-export const PATCH: RequestHandler = async ({ request, locals, params }) => {
+export const PATCH: RequestHandler = async ({ request, params }) => {
 	const prismaClient = getPrismaClient();
-	const userId = locals.user?.id;
-
-	if (!userId) throw error(401, 'Unauthorized');
 
 	const accountId = params.accountId;
 
@@ -19,7 +16,7 @@ export const PATCH: RequestHandler = async ({ request, locals, params }) => {
 		.then((data) => updateAccountDtoSchema.parse(data));
 
 	const account = await AccountService.new({ prismaClient }).update({
-		accountId: accountId,
+		accountId,
 		data: payload
 	});
 
@@ -28,17 +25,14 @@ export const PATCH: RequestHandler = async ({ request, locals, params }) => {
 	return json(accountValues);
 };
 
-export const DELETE: RequestHandler = async ({ locals, params }) => {
+export const DELETE: RequestHandler = async ({ params }) => {
 	const prismaClient = getPrismaClient();
-	const userId = locals.user?.id;
-
-	if (!userId) throw error(401, 'Unauthorized');
 
 	const accountId = params.accountId;
 
 	if (!accountId) throw error(400, 'Account ID is required');
 
-	await AccountService.new({ prismaClient }).delete({ accountId: accountId });
+	await AccountService.new({ prismaClient }).delete({ accountId });
 
 	return json({ success: true });
 };

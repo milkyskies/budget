@@ -1,13 +1,7 @@
 <script lang="ts">
-	import { AccountType } from '@prisma/client';
-	import { getSvetchClient } from 'src/lib/app/api/svetch.client';
 	import { formatCurrency } from 'src/lib/app/presentation/format-currency.util';
-	import { AccountEntity } from 'src/lib/domain/entity/account.entity';
 	import { BudgetEntity } from 'src/lib/domain/entity/budget.entity';
-	import type { CreateAccountDto } from 'src/routes/api/accounts/_dto/create-account.dto';
-	import Modal from 'src/ui/common/modal.svelte';
 	import type { PageServerData } from './$types';
-	import { onMount } from 'svelte';
 
 	export let data: PageServerData;
 

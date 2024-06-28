@@ -8,3 +8,11 @@ export const updateAccountDtoSchema = z.object({
 });
 
 export type UpdateAccountDto = z.infer<typeof updateAccountDtoSchema>;
+
+export const createAccountDtoSchema = z.object({
+	name: z.string(),
+	type: z.nativeEnum(AccountType),
+	initialBalance: z.number()
+});
+
+export type CreateAccountDto = z.infer<typeof createAccountDtoSchema>;

@@ -1,9 +1,9 @@
-import type { UpsertEntryDto } from 'src/routes/api/entries/_dto/upsert-entry.dto';
 import { EntryEntity } from '../entity/entry.entity';
 import type { PrismaClient } from '@prisma/client';
 import { createId } from '@paralleldrive/cuid2';
 import { EntryItemEntity } from '../entity/entry-item.entity';
 import { AccountEntity } from '../entity/account.entity';
+import type { UpsertEntryDto } from '../dto/entry.dto';
 
 export class EntryService {
 	private constructor(private readonly prismaClient: PrismaClient) {}
