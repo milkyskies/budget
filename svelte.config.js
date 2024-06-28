@@ -14,7 +14,9 @@ const config = {
 		adapter: adapter(),
 		alias: {
 			src: './src',
-			$ui: './src/ui'
+			$ui: './src/ui',
+			// https://github.com/prisma/prisma/issues/12504#issuecomment-2119346157
+			'.prisma/client/index-browser': './node_modules/.prisma/client/index-browser.js'
 		}
 	},
 
