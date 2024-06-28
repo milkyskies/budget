@@ -9,7 +9,9 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 
 	if (!locals.user) throw new Error('Not logged in');
 
-	let budget = await budgetService.getBudgetFromMonth({ userId: locals.user.id, month: appDayjs() });
+	let budget = await budgetService.getFirstBudget({
+		userId: locals.user.id
+	});
 
 	if (!budget) {
 		budget = await budgetService.createDefaultBudget({ name: '予算', userId: locals.user.id });

@@ -5,7 +5,7 @@
 	import type { CategoryGroupEntity } from 'src/lib/domain/entity/category-group.entity';
 	import type { CategoryEntity } from 'src/lib/domain/entity/category.entity';
 	import type { EntryEntity } from 'src/lib/domain/entity/entry.entity';
-	import type { UpsertEntryDto } from 'src/routes/api/entries/_dto/upsert-entry.dto';
+	import type { UpsertEntryDto } from 'src/lib/domain/dto/entry.dto';
 	import { fade, slide } from 'svelte/transition';
 	import YenInput from '../../../../../../ui/common/yen-input.svelte';
 

@@ -1,11 +1,9 @@
 import { PrismaClient } from '@prisma/client';
-import type { CreateAccountDto } from 'src/routes/api/accounts/_dto/create-account.dto';
 import { AccountEntity } from '../entity/account.entity';
 import { EntryEntity } from '../entity/entry.entity';
-import type { UpdateAccountDto } from 'src/routes/api/accounts/_dto/update-delete.dto';
 import { createId } from '@paralleldrive/cuid2';
 import { EntryItemEntity } from '../entity/entry-item.entity';
-import { CategoryEntity } from '../entity/category.entity';
+import type { CreateAccountDto, UpdateAccountDto } from '../dto/account.dto';
 
 export class AccountService {
 	private constructor(private readonly prisma: PrismaClient) {}
@@ -14,7 +12,10 @@ export class AccountService {
 		return new AccountService(args.prismaClient);
 	}
 
-	public async create(args: { account: CreateAccountDto }): Promise<AccountEntity> {
+	public async create(args: {
+		budgetId: string;
+		account: CreateAccountDto;
+	}): Promise<AccountEntity> {
 		const entry = await this.prisma.entry.create({
 			data: {
 				id: createId(),
@@ -34,7 +35,7 @@ export class AccountService {
 						id: createId(),
 						name: args.account.name,
 						type: args.account.type,
-						budgetId: args.account.budgetId
+						budgetId: args.budgetId
 					}
 				}
 			},

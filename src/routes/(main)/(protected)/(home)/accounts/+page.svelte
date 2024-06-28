@@ -55,11 +55,13 @@
 	async function addAccount() {
 		const apiClient = getSvetchClient();
 
-		const response = await apiClient.post('api/accounts', {
+		const response = await apiClient.post('api/budgets/:budgetId/accounts', {
 			body: {
 				...newAccount,
-				budgetId: data.budget.id,
-				initialBalance: newAccount.balance
+				initialBalance: newAccount.type === 'CREDIT_CARD' ? -newAccount.balance : newAccount.balance
+			},
+			path: {
+				budgetId: data.budget.id
 			}
 		});
 
@@ -77,9 +79,10 @@
 
 		const apiClient = getSvetchClient();
 
-		const response = await apiClient.patch(`api/accounts/:accountId`, {
+		const response = await apiClient.patch(`api/budgets/:budgetId/accounts/:accountId`, {
 			path: {
-				accountId: editingAccount.id
+				accountId: editingAccount.id,
+				budgetId: data.budget.id
 			},
 			body: {
 				name: editingAccount.name,
@@ -101,9 +104,10 @@
 
 		const apiClient = getSvetchClient();
 
-		const response = await apiClient.delete(`api/accounts/:accountId`, {
+		const response = await apiClient.delete(`api/budgets/:budgetId/accounts/:accountId`, {
 			path: {
-				accountId: id
+				accountId: id,
+				budgetId: data.budget.id
 			}
 		});
 

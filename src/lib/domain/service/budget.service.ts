@@ -1,4 +1,3 @@
-import { appDayjs } from '$lib/app/time/dayjs';
 import { PrismaClient } from '@prisma/client';
 import { AccountEntity } from '../entity/account.entity';
 import { BudgetEntity } from '../entity/budget.entity';
@@ -16,17 +15,10 @@ export class BudgetService {
 		return new BudgetService(args.prismaClient);
 	}
 
-	public async getBudgetFromMonth(args: {
-		userId: string;
-		month: appDayjs.Dayjs;
-	}): Promise<BudgetEntity | undefined> {
+	public async getFirstBudget(args: { userId: string }): Promise<BudgetEntity | undefined> {
 		const prismaBudget = await this.prismaClient.budget.findFirst({
 			where: {
-				userId: args.userId,
-				createdAt: {
-					gte: args.month.startOf('month').toDate(),
-					lt: args.month.endOf('month').toDate()
-				}
+				userId: args.userId
 			},
 			orderBy: {
 				createdAt: 'desc'

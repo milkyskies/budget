@@ -1,19 +1,11 @@
-import { error, json } from '@sveltejs/kit';
+import { json } from '@sveltejs/kit';
 import { getPrismaClient } from 'src/lib/app/database/prisma.client';
 import type { RequestHandler } from './$types';
-import { upsertEntryDtoSchema, type UpsertEntryDto } from './_dto/upsert-entry.dto';
 import { EntryService } from 'src/lib/domain/service/entry.service';
+import { upsertEntryDtoSchema, type UpsertEntryDto } from 'src/lib/domain/dto/entry.dto';
 
-export const PUT: RequestHandler = async ({ request, locals }) => {
+export const PUT: RequestHandler = async ({ request }) => {
 	const prismaClient = getPrismaClient();
-
-	const userId = locals.user?.id;
-
-	if (!userId) {
-		error(401, 'Unauthorized');
-	}
-
-	// TODO: Put all in budget
 
 	const payload: UpsertEntryDto = await request
 		.json()

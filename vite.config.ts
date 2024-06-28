@@ -23,3 +23,4 @@ export default defineConfig(() => ({
 }));
 
 // https://github.com/prisma/prisma/issues/12504#issuecomment-1827097530
+// for fixing prisma enums
