@@ -64,7 +64,7 @@ COPY --from=build /app/node_modules /app/node_modules
 COPY --from=build /app/prisma /app/prisma
 COPY --from=build /app/package.json /app
 
-RUN pnpm install -g prisma
+RUN npm install -g prisma
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
