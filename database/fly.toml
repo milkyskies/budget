@@ -2,7 +2,7 @@
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'kakeibo-san-pg'
+app = 'kakeibo-san-db'
 primary_region = 'nrt'
 
 [env]

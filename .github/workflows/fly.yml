@@ -11,12 +11,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-      - run: npm install -g pnpm
-      - run: pnpm install
-      - run: pnpm prisma:migrate:ci
       - run: flyctl deploy --remote-only --build-arg DATABASE_URL=${{ secrets.DATABASE_URL }}
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
