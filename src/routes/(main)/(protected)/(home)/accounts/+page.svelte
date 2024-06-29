@@ -58,7 +58,7 @@
 		const response = await apiClient.post('api/budgets/:budgetId/accounts', {
 			body: {
 				...newAccount,
-				initialBalance: newAccount.type === 'CREDIT_CARD' ? -newAccount.balance : newAccount.balance
+				initialBalance: newAccount.balance
 			},
 			path: {
 				budgetId: data.budget.id

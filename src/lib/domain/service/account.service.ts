@@ -19,7 +19,7 @@ export class AccountService {
 		const entry = await this.prisma.entry.create({
 			data: {
 				id: createId(),
-				type: 'INCOME',
+				type: args.account.type === 'CREDIT_CARD' ? 'EXPENSE' : 'INCOME',
 				date: new Date(),
 				memo: '初期口座残高',
 				entryItems: {

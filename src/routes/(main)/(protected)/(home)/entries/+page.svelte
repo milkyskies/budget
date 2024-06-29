@@ -98,26 +98,44 @@
 				<h3 class="text-lg font-semibold text-gray-700 mb-2">{date.format('MMMMDD日(dd)')}</h3>
 				<div class="space-y-3">
 					{#each groupedEntries as entry}
-						<button class="w-full text-left" on:click={() => openEditModal(entry)}>
-							<div class="bg-white rounded-lg shadow p-4">
-								<div class="flex justify-between items-start">
-									{#if entry.externalParty}
-										<span class="text-gray-800 font-medium mb-2">{entry.externalParty.name}</span>
+						{#if entry.type !== 'TRANSFER'}
+							<button class="w-full text-left" on:click={() => openEditModal(entry)}>
+								<div class="bg-white rounded-lg shadow p-4">
+									<div class="flex justify-between items-start">
+										{#if entry.externalParty}
+											<span class="text-gray-800 font-medium mb-2">{entry.externalParty.name}</span>
+										{/if}
+									</div>
+									{#if entry.memo}
+										<p class="text-gray-600 text-sm mb-3">{entry.memo}</p>
 									{/if}
+									<div class="space-y-2">
+										{#each entry.entryItems as item}
+											<div class="flex justify-between items-center text-sm">
+												<span class="text-gray-700">
+													{#if entry.type === 'EXPENSE'}
+														{#if item.category}
+															{item.category?.name}
+														{:else if entry.account?.type === 'CREDIT_CARD'}
+															<span class="text-gray-400">分類が不要</span>
+														{:else}
+															<span class="px-2 text-xs py-1 bg-yellow-300 rounded-xl"
+																>{'分類が未登録'}</span
+															>
+														{/if}
+													{:else if entry.type === 'INCOME'}
+														収入
+													{/if}
+												</span>
+												<span class="font-medium"
+													>{formatCurrency(entry.getTransactionSign() * item.amount)}</span
+												>
+											</div>
+										{/each}
+									</div>
 								</div>
-								{#if entry.memo}
-									<p class="text-gray-600 text-sm mb-3">{entry.memo}</p>
-								{/if}
-								<div class="space-y-2">
-									{#each entry.entryItems as item}
-										<div class="flex justify-between items-center text-sm">
-											<span class="text-gray-700">{item.category?.name ?? 'カテゴリーなし'}</span>
-											<span class="font-medium">{formatCurrency(item.amount)}</span>
-										</div>
-									{/each}
-								</div>
-							</div>
-						</button>
+							</button>
+						{/if}
 					{/each}
 				</div>
 			</div>

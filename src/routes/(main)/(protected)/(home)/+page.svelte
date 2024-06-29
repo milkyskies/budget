@@ -50,7 +50,7 @@
 		<table class="w-full">
 			<thead class=" text-gray-700">
 				<tr>
-					<th class="text-left py-3 px-4">カテゴリー</th>
+					<th class="text-left py-3 px-4">分類</th>
 					<th class="text-right py-3 px-4">割り当て金額</th>
 					<th class="text-right py-3 px-4 hidden lg:table-cell">使った金額</th>
 					<th class="text-right py-3 px-4">残金</th>
