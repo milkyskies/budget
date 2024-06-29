@@ -40,6 +40,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.user = user;
 	event.locals.session = session;
 
+	if (event.url.pathname.startsWith('/auth')) {
+		return resolve(event);
+	}
+
 	if (!event.locals.user || !event.locals.session) {
 		return new Response('Unauthorized', { status: 401 });
 	}

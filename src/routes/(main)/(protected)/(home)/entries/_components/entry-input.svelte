@@ -8,8 +8,11 @@
 	import type { UpsertEntryDto } from 'src/lib/domain/dto/entry.dto';
 	import { fade, slide } from 'svelte/transition';
 	import YenInput from '../../../../../../ui/common/yen-input.svelte';
+	import type { ExternalPartyEntity } from 'src/lib/domain/entity/external-party.entity';
+	import SearchableSelect from 'src/ui/common/searchable-select.svelte';
 
 	export let categoryGroups: CategoryGroupEntity[];
+	export let externalParties: ExternalPartyEntity[];
 	export let accounts: AccountEntity[];
 	export let initialEntry: EntryEntity | undefined = undefined;
 	export let onSubmit: (entry: UpsertEntryDto) => Promise<void>;
@@ -28,7 +31,12 @@
 	let selectedAccount = initialEntry
 		? accounts.find((a) => a.id === initialEntry.accountId)
 		: accounts[0];
-	let externalParty = initialEntry?.externalPartyId ?? '';
+
+	let selectedExternalParty: ExternalPartyEntity | undefined = initialEntry
+		? externalParties.find((ep) => ep.id === initialEntry.externalPartyId) ?? undefined
+		: undefined;
+
+	let selectedExternalPartyId = initialEntry?.externalPartyId ?? '';
 
 	let entryItems: EntryItem[] = initialEntry?.entryItems ?? [{ amount: 0 }];
 
@@ -110,19 +118,39 @@
 	function removeEntryItem(index: number) {
 		entryItems = entryItems.filter((_, i) => i !== index);
 	}
+
+	function handleExternalPartySelect(event: CustomEvent<ExternalPartyEntity>) {
+		selectedExternalParty = event.detail;
+	}
+
+	// function handleExternalPartyCreate(event: CustomEvent<string>) {
+	// 	// Here you would typically call an API to create a new external party
+	// 	// For now, we'll just update the local state
+	// 	const newParty = { id: 'temp-' + Date.now(), name: event.detail };
+
+	// 	externalParties = [...externalParties, newParty];
+	// 	selectedExternalParty = newParty;
+	// }
 </script>
 
 <form on:submit|preventDefault={handleSubmit} class="space-y-4 pb-24">
 	<div>
 		<label for="externalParty" class="block text-sm font-medium mb-1 text-gray-700">お店</label>
-		<!-- <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4"> -->
-		<input
-			id="externalParty"
-			type="text"
-			class="p-2 border border-gray-300 rounded-md shadow-sm w-full"
-			bind:value={externalParty}
+		<SearchableSelect
+			items={[
+				{
+					id: 'poop',
+					name: 'お店'
+				},
+				{
+					id: 'poop1',
+					name: 'お店2'
+				}
+			]}
+			placeholder="お店を検索または新規作成"
+			bind:value={selectedExternalPartyId}
+			on:select={handleExternalPartySelect}
 		/>
-		<!-- </div> -->
 	</div>
 	<div>
 		<div class="flex gap-2 items-end">
