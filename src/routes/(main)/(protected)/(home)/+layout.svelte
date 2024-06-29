@@ -71,7 +71,9 @@
 			on:click={() => (openModal = 'NEW_ACCOUNT')}>口座を追加</button
 		> -->
 	</aside>
-	<slot />
+	<div class="mb-[76px] lg:mb-0">
+		<slot />
+	</div>
 	<!-- モバイル用タブボタン -->
 	<nav
 		class="fixed bottom-0 left-0 right-0 bg-white text-gray-600 p-2 flex justify-around lg:hidden shadow-lg overscroll-none"
