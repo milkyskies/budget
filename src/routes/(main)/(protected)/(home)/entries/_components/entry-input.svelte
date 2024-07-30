@@ -53,6 +53,9 @@
 				type: 'NONE'
 			};
 
+	let entryType: EntryType = initialEntry?.type ?? EntryType.EXPENSE;
+	let destinationAccount: AccountEntity | undefined = undefined;
+
 	let entryItems: EntryItem[] = initialEntry?.entryItems ?? [{ amount: 0 }];
 
 	let categoryPanelState:
@@ -79,7 +82,11 @@
 	}
 
 	function clearForm() {
+		destinationAccount = undefined;
 		memo = '';
+		selectedExternalParty = { type: 'NONE' };
+		entryItems = [{ amount: 0 }];
+		categoryPanelState = { open: false };
 	}
 
 	async function handleSubmit() {
@@ -87,7 +94,7 @@
 			if (!selectedAccount) throw new Error('アカウントが選択されていません');
 
 			const baseUpsertEntryDto: UpsertEntryDto = {
-				type: EntryType.EXPENSE,
+				type: entryType,
 				date: date.toDate(),
 				memo,
 				accountId: selectedAccount.id,
@@ -131,6 +138,7 @@
 		await onDelete(initialEntry.id);
 		clearForm();
 	}
+
 	function openCategoryPanel(args: { entryItemIndex: number }) {
 		categoryPanelState = {
 			open: true,
@@ -163,18 +171,57 @@
 			};
 		}
 	}
+
+	function selectEntryType(type: EntryType) {
+		selectedExternalParty = { type: 'NONE' };
+		destinationAccount = undefined;
+		categoryPanelState = { open: false };
+
+		entryType = type;
+	}
 </script>
 
 <form on:submit|preventDefault={handleSubmit} class="space-y-4 pb-24">
 	<div>
-		<label for="externalParty" class="block text-sm font-medium mb-1 text-gray-700">お店</label>
-		<SearchableSelect
-			items={externalParties}
-			placeholder="お店を検索または新規作成"
-			initialValue={initialEntry?.externalParty?.name}
-			onSelect={handleExternalPartySelect}
-		/>
+		<label for="entryType" class="block text-sm font-medium mb-1 text-gray-700">種類</label>
+		<div class="grid grid-cols-3 gap-2">
+			<button
+				type="button"
+				class="p-2 text-sm border rounded-md hover:bg-blue-50 focus:ring-2 focus:ring-blue-500"
+				class:bg-blue-100={entryType === EntryType.EXPENSE}
+				on:click={() => (entryType = EntryType.EXPENSE)}
+			>
+				支出
+			</button>
+			<button
+				type="button"
+				class="p-2 text-sm border rounded-md hover:bg-blue-50 focus:ring-2 focus:ring-blue-500"
+				class:bg-blue-100={entryType === EntryType.INCOME}
+				on:click={() => (entryType = EntryType.INCOME)}
+			>
+				収入
+			</button>
+			<button
+				type="button"
+				class="p-2 text-sm border rounded-md hover:bg-blue-50 focus:ring-2 focus:ring-blue-500"
+				class:bg-blue-100={entryType === EntryType.TRANSFER}
+				on:click={() => (entryType = EntryType.TRANSFER)}
+			>
+				振替
+			</button>
+		</div>
 	</div>
+	{#if entryType !== EntryType.TRANSFER}
+		<div>
+			<label for="externalParty" class="block text-sm font-medium mb-1 text-gray-700">お店</label>
+			<SearchableSelect
+				items={externalParties}
+				placeholder="お店を検索または新規作成"
+				initialValue={initialEntry?.externalParty?.name}
+				onSelect={handleExternalPartySelect}
+			/>
+		</div>
+	{/if}
 	<div>
 		<div class="flex gap-2 items-end">
 			<p class="block mb-1 text-sm font-medium text-gray-700">項目</p>
@@ -246,7 +293,9 @@
 	</div>
 
 	<div>
-		<label for="account" class="block text-sm font-medium mb-1 text-gray-700">資産</label>
+		<label for="account" class="block text-sm font-medium mb-1 text-gray-700">
+			{entryType === EntryType.TRANSFER ? '振替元' : '資産'}
+		</label>
 		<div class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
 			{#each accounts as account}
 				<button
@@ -260,6 +309,26 @@
 			{/each}
 		</div>
 	</div>
+
+	{#if entryType === EntryType.TRANSFER}
+		<div>
+			<label for="destinationAccount" class="block text-sm font-medium mb-1 text-gray-700"
+				>振替先</label
+			>
+			<div class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+				{#each accounts.filter((a) => a.id !== selectedAccount?.id) as account}
+					<button
+						type="button"
+						class="p-2 text-sm border rounded-md hover:bg-blue-50 focus:ring-2 focus:ring-blue-500"
+						class:bg-blue-100={destinationAccount?.id === account.id}
+						on:click={() => (destinationAccount = account)}
+					>
+						{account.name}
+					</button>
+				{/each}
+			</div>
+		</div>
+	{/if}
 
 	<div>
 		<label for="memo" class="block text-sm font-medium mb-1 text-gray-700">メモ</label>

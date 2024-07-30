@@ -78,8 +78,8 @@ model Category {
 }
 
 enum EntryType {
-  INCOME
   EXPENSE
+  INCOME
   TRANSFER
 }
 
