@@ -189,7 +189,7 @@
 				type="button"
 				class="p-2 text-sm border rounded-md hover:bg-blue-50 focus:ring-2 focus:ring-blue-500"
 				class:bg-blue-100={entryType === EntryType.EXPENSE}
-				on:click={() => (entryType = EntryType.EXPENSE)}
+				on:click={() => selectEntryType(EntryType.EXPENSE)}
 			>
 				支出
 			</button>
@@ -197,7 +197,7 @@
 				type="button"
 				class="p-2 text-sm border rounded-md hover:bg-blue-50 focus:ring-2 focus:ring-blue-500"
 				class:bg-blue-100={entryType === EntryType.INCOME}
-				on:click={() => (entryType = EntryType.INCOME)}
+				on:click={() => selectEntryType(EntryType.INCOME)}
 			>
 				収入
 			</button>
@@ -205,7 +205,7 @@
 				type="button"
 				class="p-2 text-sm border rounded-md hover:bg-blue-50 focus:ring-2 focus:ring-blue-500"
 				class:bg-blue-100={entryType === EntryType.TRANSFER}
-				on:click={() => (entryType = EntryType.TRANSFER)}
+				on:click={() => selectEntryType(EntryType.TRANSFER)}
 			>
 				振替
 			</button>
