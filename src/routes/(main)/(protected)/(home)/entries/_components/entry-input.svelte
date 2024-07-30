@@ -171,9 +171,7 @@
 		<SearchableSelect
 			items={externalParties}
 			placeholder="お店を検索または新規作成"
-			initialValue={selectedExternalParty.type === 'EXISTING'
-				? selectedExternalParty.existingId
-				: undefined}
+			initialValue={initialEntry?.externalParty?.name}
 			onSelect={handleExternalPartySelect}
 		/>
 	</div>

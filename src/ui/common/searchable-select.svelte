@@ -3,10 +3,10 @@
 
 	export let items: Item[] = [];
 	export let placeholder = 'Search or create...';
-	export let initialValue: string | undefined = '';
+	export let initialValue = '';
 	export let onSelect: (item: Item) => void;
 
-	let searchTerm = '';
+	let searchTerm = initialValue ?? '';
 	let showDropdown = false;
 
 	$: filteredItems = items.filter((item) =>
