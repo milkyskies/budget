@@ -97,6 +97,10 @@ export class BudgetService {
 	}
 
 	public async createDefaultBudget(args: { name: string; userId: string }): Promise<BudgetEntity> {
+		const FIXED_EXPENSES = ['住居費', '保険料', '水道光熱費', '通信費', '自動車費', '教育費'];
+		const VARIABLE_EXPENSES = ['食費', '日用品費', '交通費', '交際費', '美容費', '医療費'];
+		const OTHER_EXPENSES = ['特別日', 'その他'];
+
 		const prismaBudget = await this.prismaClient.budget.create({
 			data: {
 				id: createId(),
@@ -108,21 +112,21 @@ export class BudgetService {
 							id: createId(),
 							name: '固定費',
 							categories: {
-								create: [
-									{ id: createId(), name: '住宅' },
-									{ id: createId(), name: '電気料金' },
-									{ id: createId(), name: '水道料金' }
-								]
+								create: FIXED_EXPENSES.map((name) => ({ id: createId(), name }))
 							}
 						},
 						{
 							id: createId(),
 							name: '変動費',
 							categories: {
-								create: [
-									{ id: createId(), name: '食費' },
-									{ id: createId(), name: '趣味' }
-								]
+								create: VARIABLE_EXPENSES.map((name) => ({ id: createId(), name }))
+							}
+						},
+						{
+							id: createId(),
+							name: 'その他',
+							categories: {
+								create: OTHER_EXPENSES.map((name) => ({ id: createId(), name }))
 							}
 						}
 					]
