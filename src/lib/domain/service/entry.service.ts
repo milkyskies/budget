@@ -16,6 +16,14 @@ export class EntryService {
 		const { id, newExternalPartyName, existingExternalPartyId, ...entryData } = args.entry;
 
 		const externalPartyId = await (async () => {
+			if (entryData.type === 'TRANSFER') {
+				return;
+			}
+
+			if (!newExternalPartyName && !existingExternalPartyId) {
+				return;
+			}
+
 			if (newExternalPartyName) {
 				const account = await this.prismaClient.account.findUniqueOrThrow({
 					where: { id: entryData.accountId }
@@ -30,11 +38,7 @@ export class EntryService {
 				});
 
 				return externalParty.id;
-			} else {
-				if (!existingExternalPartyId) {
-					throw new Error('No external party ID provided');
-				}
-
+			} else if (existingExternalPartyId) {
 				return existingExternalPartyId;
 			}
 		})();

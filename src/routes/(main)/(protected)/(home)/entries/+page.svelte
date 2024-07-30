@@ -24,6 +24,8 @@
 
 	let openModal = 'NONE' as 'NEW_ENTRY' | 'EDIT_ENTRY' | 'NONE';
 
+	let modalTitle = '';
+
 	let editingEntry: EntryEntity | undefined;
 
 	function openEditModal(entry: EntryEntity) {
@@ -102,7 +104,34 @@
 				<h3 class="text-lg font-semibold text-gray-700 mb-2">{date.format('MMMMDD日(dd)')}</h3>
 				<div class="space-y-3">
 					{#each groupedEntries as entry}
-						{#if entry.type !== 'TRANSFER'}
+						<!-- First handle everything with a system type separately -->
+						{#if entry.systemType === 'INITIAL_BALANCE'}
+							<button class="w-full text-left" on:click={() => openEditModal(entry)}>
+								<div class="bg-white rounded-lg shadow p-4">
+									<div class="flex justify-between items-center mb-2 text-gray-900 font-medium">
+										{#if entry.type === 'INCOME'}
+											<span>初期残高</span>
+											<span class="text-green-500"
+												>{formatCurrency(entry.getTransactionSign() * entry.totalAmount)}</span
+											>
+										{:else if entry.type === 'EXPENSE'}
+											<span>初期負債</span>
+											<span class="font-medium"
+												>{formatCurrency(entry.getTransactionSign() * entry.totalAmount)}</span
+											>
+										{/if}
+									</div>
+									<div class="flex justify-between items-center text-xs text-gray-500">
+										<span>
+											{entry.account?.name}
+										</span>
+									</div>
+									{#if entry.memo}
+										<p class="text-gray-600 text-xs mt-3">{entry.memo}</p>
+									{/if}
+								</div>
+							</button>
+						{:else if entry.type === 'EXPENSE'}
 							<button class="w-full text-left" on:click={() => openEditModal(entry)}>
 								<div class="bg-white rounded-lg shadow p-4">
 									<div class="flex justify-between items-center mb-2 text-gray-900 font-medium">
@@ -111,24 +140,20 @@
 										{:else}
 											<span>未登録</span>
 										{/if}
-										<span>{formatCurrency(entry.getTransactionSign() * entry.totalAmount)}</span>
+										<span class=""
+											>{formatCurrency(entry.getTransactionSign() * entry.totalAmount)}</span
+										>
 									</div>
 									<div class="space-y-2">
 										{#each entry.entryItems as item}
 											<div class="flex justify-between items-center text-xs text-gray-500">
-												<span class="">
-													{#if entry.type === 'EXPENSE'}
-														{#if item.category}
-															{item.category?.name}
-														{:else if entry.account?.type === 'CREDIT_CARD'}
-															<span class="">分類が不要</span>
-														{:else}
-															<span class="px-2 text-xs py-1 bg-yellow-300 rounded-xl"
-																>{'分類が未登録'}</span
-															>
-														{/if}
-													{:else if entry.type === 'INCOME'}
-														収入
+												<span>
+													{#if item.category}
+														{item.category?.name}
+													{:else}
+														<span class="px-2 text-xs py-1 bg-yellow-300 rounded-xl"
+															>分類が未登録</span
+														>
 													{/if}
 												</span>
 												<span class="font-medium"
@@ -136,6 +161,41 @@
 												>
 											</div>
 										{/each}
+									</div>
+									{#if entry.memo}
+										<p class="text-gray-600 text-xs mt-3">{entry.memo}</p>
+									{/if}
+								</div>
+							</button>
+						{:else if entry.type === 'INCOME'}
+							<button class="w-full text-left" on:click={() => openEditModal(entry)}>
+								<div class="bg-white rounded-lg shadow p-4">
+									<div class="flex justify-between items-center mb-2 text-gray-900 font-medium">
+										<span>収入</span>
+										<span class="text-green-500">{formatCurrency(Math.abs(entry.totalAmount))}</span
+										>
+									</div>
+									<div class="flex justify-between items-center text-xs text-gray-500">
+										<span>
+											{entry.account?.name}
+										</span>
+									</div>
+									{#if entry.memo}
+										<p class="text-gray-600 text-xs mt-3">{entry.memo}</p>
+									{/if}
+								</div>
+							</button>
+						{:else if entry.type === 'TRANSFER'}
+							<button class="w-full text-left" on:click={() => openEditModal(entry)}>
+								<div class="bg-white rounded-lg shadow p-4">
+									<div class="flex justify-between items-center mb-2 text-gray-900 font-medium">
+										<span>振替</span>
+										<span class="text-blue-500">{formatCurrency(Math.abs(entry.totalAmount))}</span>
+									</div>
+									<div class="flex justify-between items-center text-xs text-gray-500">
+										<span>
+											{entry.account?.name} → {entry.destinationAccount?.name}
+										</span>
 									</div>
 									{#if entry.memo}
 										<p class="text-gray-600 text-xs mt-3">{entry.memo}</p>
@@ -156,7 +216,7 @@
 		onClose={() => {
 			openModal = 'NONE';
 		}}
-		title="支出"
+		title={modalTitle}
 	>
 		<EntryInput
 			{accounts}
@@ -167,6 +227,7 @@
 				openModal = 'NONE';
 				editingEntry = undefined;
 			}}
+			bind:modalTitle
 		/>
 	</Modal>
 {:else if openModal === 'EDIT_ENTRY'}
@@ -175,7 +236,7 @@
 			openModal = 'NONE';
 			editingEntry = undefined;
 		}}
-		title="支出を編集"
+		title={modalTitle}
 	>
 		<EntryInput
 			{accounts}
@@ -192,6 +253,7 @@
 				openModal = 'NONE';
 				editingEntry = undefined;
 			}}
+			bind:modalTitle
 		/>
 	</Modal>
 {/if}
