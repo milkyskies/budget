@@ -78,18 +78,24 @@ model Category {
 }
 
 enum EntryType {
-  INCOME
   EXPENSE
+  INCOME
   TRANSFER
+}
+
+enum EntrySystemType {
+  NORMAL
+  INITIAL_BALANCE
 }
 
 // Always from the perspective of the account
 model Entry {
   id String @id @map("id")
 
-  type EntryType @map("type")
-  date DateTime  @map("date")
-  memo String    @map("memo")
+  type       EntryType       @map("type")
+  systemType EntrySystemType @default(NORMAL) @map("system_type")
+  date       DateTime        @map("date")
+  memo       String          @map("memo")
 
   accountId            String  @map("account_id")
   destinationAccountId String? @map("destination_account_id") // For transfers

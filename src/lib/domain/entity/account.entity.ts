@@ -38,7 +38,13 @@ export class AccountEntity {
 	public static fromPrisma(args: {
 		prismaAccount: PrismaAccount;
 		entries?: EntryEntity[];
+		receivingEntries?: EntryEntity[];
 	}): AccountEntity {
+		const totalEntries = [
+			...(args.entries ? args.entries.map((entry) => entry.toValues()) : []),
+			...(args.receivingEntries ? args.receivingEntries.map((entry) => entry.toValues()) : [])
+		];
+
 		return AccountEntity.create({
 			id: args.prismaAccount.id,
 			name: args.prismaAccount.name,
@@ -46,7 +52,7 @@ export class AccountEntity {
 			type: args.prismaAccount.type,
 			createdAt: args.prismaAccount.createdAt,
 			updatedAt: args.prismaAccount.updatedAt,
-			entries: args.entries?.map((entry) => entry.toValues())
+			entries: totalEntries
 		});
 	}
 
@@ -111,6 +117,6 @@ export class AccountEntity {
 	}
 
 	public get balance(): number {
-		return this.incomingSum - this.outgoingSum - this.transferInSum + this.transferOutSum;
+		return this.incomingSum - this.outgoingSum + this.transferInSum - this.transferOutSum;
 	}
 }
