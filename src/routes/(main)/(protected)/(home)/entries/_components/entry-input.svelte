@@ -10,6 +10,7 @@
 	import YenInput from '../../../../../../ui/common/yen-input.svelte';
 	import type { ExternalPartyEntity } from 'src/lib/domain/entity/external-party.entity';
 	import SearchableSelect from 'src/ui/common/searchable-select.svelte';
+	import type { Item } from 'src/ui/common/searchable-select';
 
 	export let categoryGroups: CategoryGroupEntity[];
 	export let externalParties: ExternalPartyEntity[];
@@ -32,11 +33,25 @@
 		? accounts.find((a) => a.id === initialEntry.accountId)
 		: accounts[0];
 
-	let selectedExternalParty: ExternalPartyEntity | undefined = initialEntry
-		? externalParties.find((ep) => ep.id === initialEntry.externalPartyId) ?? undefined
-		: undefined;
-
-	let selectedExternalPartyId = initialEntry?.externalPartyId ?? '';
+	let selectedExternalParty:
+		| {
+				type: 'NONE';
+		  }
+		| {
+				type: 'EXISTING';
+				existingId: string;
+		  }
+		| {
+				type: 'NEW';
+				newName: string;
+		  } = initialEntry?.externalPartyId
+		? {
+				type: 'EXISTING',
+				existingId: initialEntry.externalPartyId
+			}
+		: {
+				type: 'NONE'
+			};
 
 	let entryItems: EntryItem[] = initialEntry?.entryItems ?? [{ amount: 0 }];
 
@@ -71,18 +86,34 @@
 		try {
 			if (!selectedAccount) throw new Error('アカウントが選択されていません');
 
-			await onSubmit({
-				id: initialEntry?.id,
-				accountId: selectedAccount.id,
+			const baseUpsertEntryDto: UpsertEntryDto = {
+				type: EntryType.EXPENSE,
 				date: date.toDate(),
+				memo,
+				accountId: selectedAccount.id,
 				entryItems: entryItems.map((item) => ({
-					id: item.id,
 					amount: item.amount,
 					categoryId: item.category?.id
-				})),
-				memo,
-				type: EntryType.EXPENSE
-			});
+				}))
+			};
+
+			const upsertEntryDto = (() => {
+				if (selectedExternalParty.type === 'NEW') {
+					return {
+						...baseUpsertEntryDto,
+						newExternalPartyName: selectedExternalParty.newName
+					};
+				} else if (selectedExternalParty.type === 'EXISTING') {
+					return {
+						...baseUpsertEntryDto,
+						existingExternalPartyId: selectedExternalParty.existingId
+					};
+				}
+
+				return baseUpsertEntryDto;
+			})();
+
+			await onSubmit(upsertEntryDto);
 
 			clearForm();
 		} catch (error) {
@@ -119,37 +150,31 @@
 		entryItems = entryItems.filter((_, i) => i !== index);
 	}
 
-	function handleExternalPartySelect(event: CustomEvent<ExternalPartyEntity>) {
-		selectedExternalParty = event.detail;
+	function handleExternalPartySelect(item: Item) {
+		if (item.isNew) {
+			selectedExternalParty = {
+				type: 'NEW',
+				newName: item.name
+			};
+		} else {
+			selectedExternalParty = {
+				type: 'EXISTING',
+				existingId: item.id
+			};
+		}
 	}
-
-	// function handleExternalPartyCreate(event: CustomEvent<string>) {
-	// 	// Here you would typically call an API to create a new external party
-	// 	// For now, we'll just update the local state
-	// 	const newParty = { id: 'temp-' + Date.now(), name: event.detail };
-
-	// 	externalParties = [...externalParties, newParty];
-	// 	selectedExternalParty = newParty;
-	// }
 </script>
 
 <form on:submit|preventDefault={handleSubmit} class="space-y-4 pb-24">
 	<div>
 		<label for="externalParty" class="block text-sm font-medium mb-1 text-gray-700">お店</label>
 		<SearchableSelect
-			items={[
-				{
-					id: 'poop',
-					name: 'お店'
-				},
-				{
-					id: 'poop1',
-					name: 'お店2'
-				}
-			]}
+			items={externalParties}
 			placeholder="お店を検索または新規作成"
-			bind:value={selectedExternalPartyId}
-			on:select={handleExternalPartySelect}
+			initialValue={selectedExternalParty.type === 'EXISTING'
+				? selectedExternalParty.existingId
+				: undefined}
+			onSelect={handleExternalPartySelect}
 		/>
 	</div>
 	<div>
