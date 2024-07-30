@@ -13,13 +13,38 @@ export class EntryService {
 	}
 
 	public async upsert(args: { entry: UpsertEntryDto }): Promise<EntryEntity> {
-		const { id, ...entryData } = args.entry;
+		const { id, newExternalPartyName, existingExternalPartyId, ...entryData } = args.entry;
+
+		const externalPartyId = await (async () => {
+			if (newExternalPartyName) {
+				const account = await this.prismaClient.account.findUniqueOrThrow({
+					where: { id: entryData.accountId }
+				});
+
+				const externalParty = await this.prismaClient.externalParty.create({
+					data: {
+						id: createId(),
+						name: newExternalPartyName,
+						budgetId: account.budgetId
+					}
+				});
+
+				return externalParty.id;
+			} else {
+				if (!existingExternalPartyId) {
+					throw new Error('No external party ID provided');
+				}
+
+				return existingExternalPartyId;
+			}
+		})();
 
 		const prismaEntry = id
 			? await this.prismaClient.entry.update({
 					where: { id },
 					data: {
 						...entryData,
+						externalPartyId,
 						entryItems: {
 							deleteMany: {
 								id: {
@@ -55,6 +80,7 @@ export class EntryService {
 					data: {
 						id: createId(),
 						...entryData,
+						externalPartyId,
 						entryItems: {
 							create: entryData.entryItems.map((entryItem) => ({
 								id: createId(),

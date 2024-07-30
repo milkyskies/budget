@@ -8,8 +8,12 @@
 	import type { UpsertEntryDto } from 'src/lib/domain/dto/entry.dto';
 	import { fade, slide } from 'svelte/transition';
 	import YenInput from '../../../../../../ui/common/yen-input.svelte';
+	import type { ExternalPartyEntity } from 'src/lib/domain/entity/external-party.entity';
+	import SearchableSelect from 'src/ui/common/searchable-select.svelte';
+	import type { Item } from 'src/ui/common/searchable-select';
 
 	export let categoryGroups: CategoryGroupEntity[];
+	export let externalParties: ExternalPartyEntity[];
 	export let accounts: AccountEntity[];
 	export let initialEntry: EntryEntity | undefined = undefined;
 	export let onSubmit: (entry: UpsertEntryDto) => Promise<void>;
@@ -28,7 +32,26 @@
 	let selectedAccount = initialEntry
 		? accounts.find((a) => a.id === initialEntry.accountId)
 		: accounts[0];
-	let externalParty = initialEntry?.externalPartyId ?? '';
+
+	let selectedExternalParty:
+		| {
+				type: 'NONE';
+		  }
+		| {
+				type: 'EXISTING';
+				existingId: string;
+		  }
+		| {
+				type: 'NEW';
+				newName: string;
+		  } = initialEntry?.externalPartyId
+		? {
+				type: 'EXISTING',
+				existingId: initialEntry.externalPartyId
+			}
+		: {
+				type: 'NONE'
+			};
 
 	let entryItems: EntryItem[] = initialEntry?.entryItems ?? [{ amount: 0 }];
 
@@ -63,18 +86,34 @@
 		try {
 			if (!selectedAccount) throw new Error('アカウントが選択されていません');
 
-			await onSubmit({
-				id: initialEntry?.id,
-				accountId: selectedAccount.id,
+			const baseUpsertEntryDto: UpsertEntryDto = {
+				type: EntryType.EXPENSE,
 				date: date.toDate(),
+				memo,
+				accountId: selectedAccount.id,
 				entryItems: entryItems.map((item) => ({
-					id: item.id,
 					amount: item.amount,
 					categoryId: item.category?.id
-				})),
-				memo,
-				type: EntryType.EXPENSE
-			});
+				}))
+			};
+
+			const upsertEntryDto = (() => {
+				if (selectedExternalParty.type === 'NEW') {
+					return {
+						...baseUpsertEntryDto,
+						newExternalPartyName: selectedExternalParty.newName
+					};
+				} else if (selectedExternalParty.type === 'EXISTING') {
+					return {
+						...baseUpsertEntryDto,
+						existingExternalPartyId: selectedExternalParty.existingId
+					};
+				}
+
+				return baseUpsertEntryDto;
+			})();
+
+			await onSubmit(upsertEntryDto);
 
 			clearForm();
 		} catch (error) {
@@ -110,19 +149,33 @@
 	function removeEntryItem(index: number) {
 		entryItems = entryItems.filter((_, i) => i !== index);
 	}
+
+	function handleExternalPartySelect(item: Item) {
+		if (item.isNew) {
+			selectedExternalParty = {
+				type: 'NEW',
+				newName: item.name
+			};
+		} else {
+			selectedExternalParty = {
+				type: 'EXISTING',
+				existingId: item.id
+			};
+		}
+	}
 </script>
 
 <form on:submit|preventDefault={handleSubmit} class="space-y-4 pb-24">
 	<div>
 		<label for="externalParty" class="block text-sm font-medium mb-1 text-gray-700">お店</label>
-		<!-- <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4"> -->
-		<input
-			id="externalParty"
-			type="text"
-			class="p-2 border border-gray-300 rounded-md shadow-sm w-full"
-			bind:value={externalParty}
+		<SearchableSelect
+			items={externalParties}
+			placeholder="お店を検索または新規作成"
+			initialValue={selectedExternalParty.type === 'EXISTING'
+				? selectedExternalParty.existingId
+				: undefined}
+			onSelect={handleExternalPartySelect}
 		/>
-		<!-- </div> -->
 	</div>
 	<div>
 		<div class="flex gap-2 items-end">
