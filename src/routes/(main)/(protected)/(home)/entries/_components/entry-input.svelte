@@ -27,7 +27,14 @@
 		category?: CategoryEntity;
 	};
 
-	let date = appDayjs();
+	let date = initialEntry?.date ?? appDayjs();
+	let dateString = date.format('YYYY-MM-DD');
+	let timeString = date.format('HH:mm');
+
+	function updateDateTime() {
+		date = appDayjs(`${dateString} ${timeString}`);
+	}
+
 	let memo = initialEntry?.memo ?? '';
 	let selectedAccount = initialEntry
 		? accounts.find((a) => a.id === initialEntry.accountId)
@@ -166,6 +173,25 @@
 </script>
 
 <form on:submit|preventDefault={handleSubmit} class="space-y-4 pb-24">
+	<div>
+		<label for="date" class="block text-sm font-medium mb-1 text-gray-700">日付</label>
+		<div class="flex gap-2">
+			<input
+				type="date"
+				id="date"
+				bind:value={dateString}
+				on:change={updateDateTime}
+				class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+			/>
+			<input
+				type="time"
+				id="time"
+				bind:value={timeString}
+				on:change={updateDateTime}
+				class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+			/>
+		</div>
+	</div>
 	<div>
 		<label for="externalParty" class="block text-sm font-medium mb-1 text-gray-700">お店</label>
 		<SearchableSelect
