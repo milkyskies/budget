@@ -21,7 +21,8 @@ export class AccountService {
 				id: createId(),
 				type: args.account.type === 'CREDIT_CARD' ? 'EXPENSE' : 'INCOME',
 				date: new Date(),
-				memo: '初期口座残高',
+				memo: '',
+				systemType: 'INITIAL_BALANCE',
 				entryItems: {
 					create: [
 						{

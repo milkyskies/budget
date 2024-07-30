@@ -11,15 +11,42 @@
 	import type { ExternalPartyEntity } from 'src/lib/domain/entity/external-party.entity';
 	import SearchableSelect from 'src/ui/common/searchable-select.svelte';
 	import type { Item } from 'src/ui/common/searchable-select';
+	import Modal from 'src/ui/common/modal.svelte';
 
 	export let categoryGroups: CategoryGroupEntity[];
 	export let externalParties: ExternalPartyEntity[];
 	export let accounts: AccountEntity[];
 	export let initialEntry: EntryEntity | undefined = undefined;
+	export let modalTitle = '';
 	export let onSubmit: (entry: UpsertEntryDto) => Promise<void>;
 	export let onDelete: (entryId: string) => Promise<void> = () => {
 		throw new Error('削除できません。');
 	};
+
+	$: {
+		const getBaseTitle = () => {
+			if (initialEntry?.systemType === 'INITIAL_BALANCE') {
+				return initialEntry.type === EntryType.INCOME ? '初期残高' : '初期負債';
+			}
+
+			const type = entryType || initialEntry?.type;
+
+			switch (type) {
+				case EntryType.INCOME:
+					return '収入';
+				case EntryType.EXPENSE:
+					return '支出';
+				case EntryType.TRANSFER:
+					return '振替';
+				default:
+					throw new Error('Invalid entry type');
+			}
+		};
+
+		const base = getBaseTitle();
+
+		modalTitle = `${base}を${initialEntry ? '編集' : '追加'}`;
+	}
 
 	type EntryItem = {
 		id?: string;
@@ -108,7 +135,8 @@
 				entryItems: entryItems.map((item) => ({
 					amount: item.amount,
 					categoryId: item.category?.id
-				}))
+				})),
+				destinationAccountId: destinationAccount?.id
 			};
 
 			const upsertEntryDto = (() => {
@@ -189,116 +217,128 @@
 </script>
 
 <form on:submit|preventDefault={handleSubmit} class="space-y-4 pb-24">
-	<div>
-		<label for="entryType" class="block text-sm font-medium mb-1 text-gray-700">種類</label>
-		<div class="grid grid-cols-3 gap-2">
-			<button
-				type="button"
-				class="p-2 text-sm border rounded-md hover:bg-blue-50 focus:ring-2 focus:ring-blue-500"
-				class:bg-blue-100={entryType === EntryType.EXPENSE}
-				on:click={() => selectEntryType(EntryType.EXPENSE)}
-			>
-				支出
-			</button>
-			<button
-				type="button"
-				class="p-2 text-sm border rounded-md hover:bg-blue-50 focus:ring-2 focus:ring-blue-500"
-				class:bg-blue-100={entryType === EntryType.INCOME}
-				on:click={() => selectEntryType(EntryType.INCOME)}
-			>
-				収入
-			</button>
-			<button
-				type="button"
-				class="p-2 text-sm border rounded-md hover:bg-blue-50 focus:ring-2 focus:ring-blue-500"
-				class:bg-blue-100={entryType === EntryType.TRANSFER}
-				on:click={() => selectEntryType(EntryType.TRANSFER)}
-			>
-				振替
-			</button>
-		</div>
-	</div>
-	{#if entryType !== EntryType.TRANSFER}
+	{#if initialEntry?.systemType !== 'INITIAL_BALANCE'}
 		<div>
-			<label for="date" class="block text-sm font-medium mb-1 text-gray-700">日付</label>
-			<div class="flex gap-2">
-				<input
-					type="date"
-					id="date"
-					bind:value={dateString}
-					on:change={updateDateTime}
-					class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-				/>
-				<input
-					type="time"
-					id="time"
-					bind:value={timeString}
-					on:change={updateDateTime}
-					class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-				/>
+			<div class="grid grid-cols-3 gap-2">
+				<button
+					type="button"
+					class="p-2 text-sm border rounded-md hover:bg-blue-50 focus:ring-2 focus:ring-blue-500"
+					class:bg-blue-100={entryType === EntryType.EXPENSE}
+					on:click={() => selectEntryType(EntryType.EXPENSE)}
+				>
+					支出
+				</button>
+				<button
+					type="button"
+					class="p-2 text-sm border rounded-md hover:bg-blue-50 focus:ring-2 focus:ring-blue-500"
+					class:bg-blue-100={entryType === EntryType.INCOME}
+					on:click={() => selectEntryType(EntryType.INCOME)}
+				>
+					収入
+				</button>
+				<button
+					type="button"
+					class="p-2 text-sm border rounded-md hover:bg-blue-50 focus:ring-2 focus:ring-blue-500"
+					class:bg-blue-100={entryType === EntryType.TRANSFER}
+					on:click={() => selectEntryType(EntryType.TRANSFER)}
+				>
+					振替
+				</button>
 			</div>
 		</div>
-		<div>
-			<label for="externalParty" class="block text-sm font-medium mb-1 text-gray-700">お店</label>
-			<SearchableSelect
-				items={externalParties}
-				placeholder="お店を検索または新規作成"
-				initialValue={initialEntry?.externalParty?.name}
-				onSelect={handleExternalPartySelect}
+	{/if}
+
+	<div>
+		<label for="date" class="block text-sm font-medium mb-1 text-gray-700">日付</label>
+		<div class="flex gap-2">
+			<input
+				type="date"
+				id="date"
+				bind:value={dateString}
+				on:change={updateDateTime}
+				class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
 			/>
+			<input
+				type="time"
+				id="time"
+				bind:value={timeString}
+				on:change={updateDateTime}
+				class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+			/>
+		</div>
+	</div>
+	{#if entryType !== EntryType.TRANSFER && initialEntry?.systemType !== 'INITIAL_BALANCE'}
+		<div>
+			<label for="externalParty" class="block text-sm font-medium mb-1 text-gray-700">
+				{entryType === EntryType.EXPENSE ? 'お店' : '収入源'}
+			</label>
+			{#key entryType}
+				<SearchableSelect
+					items={externalParties}
+					placeholder="検索または新規作成"
+					initialValue={initialEntry?.externalParty?.name}
+					onSelect={handleExternalPartySelect}
+				/>
+			{/key}
 		</div>
 	{/if}
 	<div>
 		<div class="flex gap-2 items-end">
-			<p class="block mb-1 text-sm font-medium text-gray-700">項目</p>
-			<button
-				type="button"
-				class=" bg-gray-50 mb-1 text-gray-400 border border-gray-300 rounded-full transition-colors"
-				on:click={addEntryItem}
-			>
-				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-					/>
-				</svg>
-			</button>
+			{#if entryType === EntryType.EXPENSE && initialEntry?.systemType !== 'INITIAL_BALANCE'}
+				<p class="block mb-1 text-sm font-medium text-gray-700">項目</p>
+				<button
+					type="button"
+					class=" bg-gray-50 mb-1 text-gray-400 border border-gray-300 rounded-full transition-colors"
+					on:click={addEntryItem}
+				>
+					<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+						/>
+					</svg>
+				</button>
+			{:else}
+				<p class="block mb-1 text-sm font-medium text-gray-700">金額</p>
+			{/if}
 		</div>
 		<div class="space-y-2 mb-4">
 			{#each entryItems as item, index}
 				<div class="flex items-center gap-2">
-					<div class="w-2/5">
+					<div class="flex-1">
 						<div class="relative">
 							<span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">¥</span>
 							<YenInput bind:value={item.amount} />
 						</div>
 					</div>
-					<div class="w-3/5">
-						<button
-							type="button"
-							class="w-full p-2 border border-gray-300 rounded-md shadow-sm bg-white cursor-pointer flex justify-between items-center"
-							on:click={() => openCategoryPanel({ entryItemIndex: index })}
-						>
-							<span class={item.category ? 'text-gray-900' : 'text-gray-500'}>
-								{item.category?.name ?? '分類を選択'}
-							</span>
-							<svg
-								class="w-5 h-5 text-gray-400"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
+					{#if entryType === EntryType.EXPENSE && initialEntry?.systemType !== 'INITIAL_BALANCE'}
+						<div class="w-3/5">
+							<button
+								type="button"
+								class="w-full p-2 border border-gray-300 rounded-md shadow-sm bg-white cursor-pointer flex justify-between items-center"
+								on:click={() => openCategoryPanel({ entryItemIndex: index })}
 							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M19 9l-7 7-7-7"
-								/>
-							</svg>
-						</button>
-					</div>
+								<span class={item.category ? 'text-gray-900' : 'text-gray-500'}>
+									{item.category?.name ?? '分類を選択'}
+								</span>
+								<svg
+									class="w-5 h-5 text-gray-400"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M19 9l-7 7-7-7"
+									/>
+								</svg>
+							</button>
+						</div>
+					{/if}
 					{#if entryItems.length > 1}
 						<button type="button" class="text-gray-400" on:click={() => removeEntryItem(index)}>
 							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -326,9 +366,17 @@
 			{#each accounts as account}
 				<button
 					type="button"
-					class="p-2 text-sm border rounded-md hover:bg-blue-50 focus:ring-2 focus:ring-blue-500"
+					class={`p-2 text-sm border rounded-md
+						${
+							initialEntry?.systemType === 'INITIAL_BALANCE' && selectedAccount?.id !== account.id
+								? 'cursor-not-allowed bg-gray-200 text-black/30'
+								: 'hover:bg-blue-50 focus:ring-2 focus:ring-blue-500'
+						}
+						${selectedAccount?.id === account.id && 'bg-blue-100'}
+					`}
 					class:bg-blue-100={selectedAccount?.id === account.id}
 					on:click={() => (selectedAccount = account)}
+					disabled={initialEntry?.systemType === 'INITIAL_BALANCE'}
 				>
 					{account.name}
 				</button>
@@ -342,11 +390,18 @@
 				>振替先</label
 			>
 			<div class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
-				{#each accounts.filter((a) => a.id !== selectedAccount?.id) as account}
+				{#each accounts as account}
 					<button
 						type="button"
-						class="p-2 text-sm border rounded-md hover:bg-blue-50 focus:ring-2 focus:ring-blue-500"
-						class:bg-blue-100={destinationAccount?.id === account.id}
+						class={`p-2 text-sm border rounded-md
+						${
+							account.id === selectedAccount?.id
+								? 'cursor-not-allowed bg-gray-200 text-black/30'
+								: 'hover:bg-blue-50 focus:ring-2 focus:ring-blue-500'
+						}
+						${destinationAccount?.id === account.id && 'bg-blue-100'}
+					`}
+						disabled={account.id === selectedAccount?.id}
 						on:click={() => (destinationAccount = account)}
 					>
 						{account.name}
