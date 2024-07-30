@@ -1,4 +1,4 @@
-import type { EntryType, Entry as PrismaEntry } from '@prisma/client';
+import type { EntryType, Entry as PrismaEntry, EntrySystemType } from '@prisma/client';
 import { AccountEntity, type AccountValues } from './account.entity';
 import {
 	EntryItemEntity,
@@ -10,6 +10,7 @@ import { appDayjs } from '$lib/app/time/dayjs';
 export type EntryValues = {
 	id: string;
 	type: EntryType;
+	systemType: EntrySystemType;
 	date: Date;
 	memo: string;
 	accountId: string;
@@ -27,6 +28,7 @@ export type EntryValues = {
 export class EntryEntity {
 	public readonly id: string;
 	public readonly type: EntryType;
+	public readonly systemType: EntrySystemType;
 	public readonly date: appDayjs.Dayjs;
 	public readonly memo: string;
 	public readonly accountId: string;
@@ -42,6 +44,7 @@ export class EntryEntity {
 	private constructor(args: EntryValues) {
 		this.id = args.id;
 		this.type = args.type;
+		this.systemType = args.systemType;
 		this.date = appDayjs(args.date);
 		this.memo = args.memo;
 		this.accountId = args.accountId;
@@ -83,6 +86,7 @@ export class EntryEntity {
 		return EntryEntity.create({
 			id: args.prismaEntry.id,
 			type: args.prismaEntry.type,
+			systemType: args.prismaEntry.systemType,
 			date: args.prismaEntry.date,
 			memo: args.prismaEntry.memo,
 			accountId: args.prismaEntry.accountId,
@@ -101,6 +105,7 @@ export class EntryEntity {
 		return {
 			id: this.id,
 			type: this.type,
+			systemType: this.systemType,
 			date: this.date.toDate(),
 			memo: this.memo,
 			accountId: this.accountId,

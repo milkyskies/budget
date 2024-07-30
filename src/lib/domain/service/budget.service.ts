@@ -39,6 +39,11 @@ export class BudgetService {
 							include: {
 								entryItems: true
 							}
+						},
+						receivingEntries: {
+							include: {
+								entryItems: true
+							}
 						}
 					}
 				}
@@ -66,6 +71,14 @@ export class BudgetService {
 			return AccountEntity.fromPrisma({
 				prismaAccount: prismaAccount,
 				entries: prismaAccount.entries.map((prismaEntry) =>
+					EntryEntity.fromPrisma({
+						prismaEntry,
+						entryItems: prismaEntry.entryItems.map((entryItem) =>
+							EntryItemEntity.fromPrisma({ prismaEntryItem: entryItem })
+						)
+					})
+				),
+				receivingEntries: prismaAccount.receivingEntries.map((prismaEntry) =>
 					EntryEntity.fromPrisma({
 						prismaEntry,
 						entryItems: prismaEntry.entryItems.map((entryItem) =>
@@ -131,6 +144,11 @@ export class BudgetService {
 							include: {
 								entryItems: true
 							}
+						},
+						receivingEntries: {
+							include: {
+								entryItems: true
+							}
 						}
 					}
 				}
@@ -152,6 +170,14 @@ export class BudgetService {
 			AccountEntity.fromPrisma({
 				prismaAccount: prismaAccount,
 				entries: prismaAccount.entries.map((prismaEntry) =>
+					EntryEntity.fromPrisma({
+						prismaEntry,
+						entryItems: prismaEntry.entryItems.map((entryItem) =>
+							EntryItemEntity.fromPrisma({ prismaEntryItem: entryItem })
+						)
+					})
+				),
+				receivingEntries: prismaAccount.receivingEntries.map((prismaEntry) =>
 					EntryEntity.fromPrisma({
 						prismaEntry,
 						entryItems: prismaEntry.entryItems.map((entryItem) =>
