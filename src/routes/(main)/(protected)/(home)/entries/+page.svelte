@@ -161,6 +161,7 @@
 		<EntryInput
 			{accounts}
 			{categoryGroups}
+			{externalParties}
 			onSubmit={async (entry) => {
 				await updateEntry({ entry });
 				openModal = 'NONE';

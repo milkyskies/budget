@@ -1,31 +1,29 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
+	import type { Item } from './searchable-select';
 
-	export let items: { id: string; name: string }[] = [];
+	export let items: Item[] = [];
 	export let placeholder = 'Search or create...';
-	export let value: string | undefined = '';
+	export let initialValue: string | undefined = '';
+	export let onSelect: (item: Item) => void;
 
 	let searchTerm = '';
 	let showDropdown = false;
-	const dispatch = createEventDispatcher();
 
 	$: filteredItems = items.filter((item) =>
 		item.name.toLowerCase().includes(searchTerm.toLowerCase())
 	);
 
-	function selectItem(item: { id: string; name: string }) {
-		value = item.id;
+	$: showNewAddition =
+		searchTerm && !items.some((item) => item.name.toLowerCase() === searchTerm.toLowerCase());
+
+	function selectItem(item: Item) {
 		searchTerm = item.name;
 		showDropdown = false;
-		dispatch('select', item);
+		onSelect(item);
 	}
 
 	function handleInput() {
 		showDropdown = true;
-
-		if (!items.some((item) => item.name.toLowerCase() === searchTerm.toLowerCase())) {
-			dispatch('create', searchTerm);
-		}
 	}
 
 	function handleFocus() {
@@ -36,6 +34,12 @@
 		setTimeout(() => {
 			showDropdown = false;
 		}, 5);
+	}
+
+	function selectNewItem() {
+		const item: Item = { id: '', name: searchTerm, isNew: true };
+
+		selectItem(item);
 	}
 </script>
 
@@ -49,13 +53,26 @@
 		on:blur={handleBlur}
 		class="p-2 border border-gray-300 rounded-md shadow-sm w-full"
 	/>
-	{#if showDropdown && filteredItems.length > 0}
+	{#if showDropdown && (filteredItems.length > 0 || showNewAddition)}
 		<ul
 			class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
 		>
+			{#if showNewAddition}
+				<li class="hover:bg-gray-100 cursor-pointer">
+					<button
+						class="p-2 w-full text-left flex items-center"
+						on:click|preventDefault={selectNewItem}
+					>
+						<span class="mr-2">+</span>
+						<span><span class="text-blue-500">{searchTerm}</span>を登録</span>
+					</button>
+				</li>
+			{/if}
 			{#each filteredItems as item}
 				<li class="hover:bg-gray-100 cursor-pointer">
-					<button class="p-2" on:mousedown={() => selectItem(item)}> {item.name} </button>
+					<button class="p-2 w-full text-left" on:click={() => selectItem(item)}>
+						{item.name}
+					</button>
 				</li>
 			{/each}
 		</ul>
