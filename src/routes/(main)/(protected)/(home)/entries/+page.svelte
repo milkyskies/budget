@@ -11,12 +11,16 @@
 	import { invalidateAll } from '$app/navigation';
 	import { groupBy } from 'lodash-es';
 	import { appDayjs } from 'src/lib/app/time/dayjs';
+	import { ExternalPartyEntity } from 'src/lib/domain/entity/external-party.entity';
 
 	export let data: PageServerData;
 
 	$: entries = data.entries.map((entry) => EntryEntity.create(entry));
 	$: categoryGroups = data.categoryGroups.map((group) => CategoryGroupEntity.create(group));
 	$: accounts = data.accounts.map((account) => AccountEntity.create(account));
+	$: externalParties = data.externalParties.map((externalParty) =>
+		ExternalPartyEntity.create(externalParty)
+	);
 
 	let openModal = 'NONE' as 'NEW_ENTRY' | 'EDIT_ENTRY' | 'NONE';
 
@@ -101,23 +105,23 @@
 						{#if entry.type !== 'TRANSFER'}
 							<button class="w-full text-left" on:click={() => openEditModal(entry)}>
 								<div class="bg-white rounded-lg shadow p-4">
-									<div class="flex justify-between items-start">
+									<div class="flex justify-between items-center mb-2 text-gray-900 font-medium">
 										{#if entry.externalParty}
-											<span class="text-gray-800 font-medium mb-2">{entry.externalParty.name}</span>
+											<span class="">{entry.externalParty.name}</span>
+										{:else}
+											<span>未登録</span>
 										{/if}
+										<span>{formatCurrency(entry.getTransactionSign() * entry.totalAmount)}</span>
 									</div>
-									{#if entry.memo}
-										<p class="text-gray-600 text-sm mb-3">{entry.memo}</p>
-									{/if}
 									<div class="space-y-2">
 										{#each entry.entryItems as item}
-											<div class="flex justify-between items-center text-sm">
-												<span class="text-gray-700">
+											<div class="flex justify-between items-center text-xs text-gray-500">
+												<span class="">
 													{#if entry.type === 'EXPENSE'}
 														{#if item.category}
 															{item.category?.name}
 														{:else if entry.account?.type === 'CREDIT_CARD'}
-															<span class="text-gray-400">分類が不要</span>
+															<span class="">分類が不要</span>
 														{:else}
 															<span class="px-2 text-xs py-1 bg-yellow-300 rounded-xl"
 																>{'分類が未登録'}</span
@@ -133,6 +137,9 @@
 											</div>
 										{/each}
 									</div>
+									{#if entry.memo}
+										<p class="text-gray-600 text-xs mt-3">{entry.memo}</p>
+									{/if}
 								</div>
 							</button>
 						{/if}
@@ -154,6 +161,7 @@
 		<EntryInput
 			{accounts}
 			{categoryGroups}
+			{externalParties}
 			onSubmit={async (entry) => {
 				await updateEntry({ entry });
 				openModal = 'NONE';
@@ -172,6 +180,7 @@
 		<EntryInput
 			{accounts}
 			{categoryGroups}
+			{externalParties}
 			initialEntry={editingEntry}
 			onSubmit={async (entry) => {
 				await updateEntry({ entry });
