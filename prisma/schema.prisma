@@ -68,8 +68,8 @@ model Category {
   name            String        @map("name")
   categoryGroupId String        @map("category_group_id")
   categoryGroup   CategoryGroup @relation(fields: [categoryGroupId], references: [id])
-  assignedAmount  Int           @default(0) @map("assigned_amount")
   entryItems      EntryItem[]
+  assignments     Assignment[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -81,11 +81,15 @@ enum EntryType {
   EXPENSE
   INCOME
   TRANSFER
+
+  @@map("entry_type")
 }
 
 enum EntrySystemType {
   NORMAL
   INITIAL_BALANCE
+
+  @@map("entry_system_type")
 }
 
 // Always from the perspective of the account
@@ -146,6 +150,8 @@ enum AccountType {
   CHECKING
   SAVINGS
   CREDIT_CARD
+
+  @@map("account_type")
 }
 
 model Account {
@@ -163,4 +169,19 @@ model Account {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("accounts")
+}
+
+model Assignment {
+  id         String   @id @map("id")
+  categoryId String   @map("category_id")
+  category   Category @relation(fields: [categoryId], references: [id])
+  amount     Int      @map("amount")
+  month      DateTime @map("month") // Always the first day of the month
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([categoryId, month])
+  @@index([categoryId, month])
+  @@map("assignments")
 }

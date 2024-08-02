@@ -1,5 +1,6 @@
 import { CategoryEntity, type CategoryValues } from './category.entity';
 import type { EntryItem as PrismaEntryItem } from '@prisma/client';
+import { appDayjs } from 'src/lib/app/time/dayjs';
 
 export type EntryItemEntityValues = {
 	id: string;
@@ -15,16 +16,16 @@ export class EntryItemEntity {
 	public readonly amount: number;
 	public readonly categoryId?: string;
 	public readonly category?: CategoryEntity;
-	public readonly createdAt: Date;
-	public readonly updatedAt: Date;
+	public readonly createdAt: appDayjs.Dayjs;
+	public readonly updatedAt: appDayjs.Dayjs;
 
 	private constructor(args: EntryItemEntityValues) {
 		this.id = args.id;
 		this.amount = args.amount;
 		this.categoryId = args.categoryId;
 		this.category = args.category ? CategoryEntity.create(args.category) : undefined;
-		this.createdAt = args.createdAt;
-		this.updatedAt = args.updatedAt;
+		this.createdAt = appDayjs(args.createdAt);
+		this.updatedAt = appDayjs(args.updatedAt);
 	}
 
 	public static create(args: EntryItemEntityValues): EntryItemEntity {
@@ -51,8 +52,8 @@ export class EntryItemEntity {
 			amount: this.amount,
 			categoryId: this.categoryId,
 			category: this.category?.toValues(),
-			createdAt: this.createdAt,
-			updatedAt: this.updatedAt
+			createdAt: this.createdAt.toDate(),
+			updatedAt: this.updatedAt.toDate()
 		};
 	}
 }
