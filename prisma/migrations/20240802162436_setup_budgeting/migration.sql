@@ -16,18 +16,17 @@ CREATE TYPE "entry_system_type" AS ENUM ('NORMAL', 'INITIAL_BALANCE');
 -- CreateEnum
 CREATE TYPE "account_type" AS ENUM ('CASH', 'CHECKING', 'SAVINGS', 'CREDIT_CARD');
 
--- AlterTable
-ALTER TABLE "accounts" DROP COLUMN "type",
-ADD COLUMN     "type" "account_type" NOT NULL DEFAULT 'CHECKING';
+ALTER TABLE "accounts"
+ALTER COLUMN "type" TYPE "account_type" USING "type"::"text"::"account_type",
+ALTER COLUMN "type" SET DEFAULT 'CHECKING';
 
 -- AlterTable
 ALTER TABLE "categories" DROP COLUMN "assigned_amount";
 
--- AlterTable
-ALTER TABLE "entries" DROP COLUMN "type",
-ADD COLUMN     "type" "entry_type" NOT NULL,
-DROP COLUMN "system_type",
-ADD COLUMN     "system_type" "entry_system_type" NOT NULL DEFAULT 'NORMAL';
+ALTER TABLE "entries"
+ALTER COLUMN "type" TYPE "entry_type" USING "type"::"text"::"entry_type",
+ALTER COLUMN "system_type" TYPE "entry_system_type" USING "system_type"::"text"::"entry_system_type",
+ALTER COLUMN "system_type" SET DEFAULT 'NORMAL';
 
 -- DropEnum
 DROP TYPE "AccountType";
