@@ -18,7 +18,7 @@ CREATE TYPE "account_type" AS ENUM ('CASH', 'CHECKING', 'SAVINGS', 'CREDIT_CARD'
 
 -- AlterTable
 ALTER TABLE "accounts" DROP COLUMN "type",
-ADD COLUMN     "type" "account_type" NOT NULL;
+ADD COLUMN     "type" "account_type" NOT NULL DEFAULT 'CHECKING';
 
 -- AlterTable
 ALTER TABLE "categories" DROP COLUMN "assigned_amount";
