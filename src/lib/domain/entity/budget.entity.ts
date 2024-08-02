@@ -68,25 +68,31 @@ export class BudgetEntity {
 		};
 	}
 
-	public get monthlyAssignedAmount(): number {
+	public getMonthAssignedAmount(month: appDayjs.Dayjs): number {
 		return this.categoryGroups.reduce(
-			(acc, categoryGroup) => acc + categoryGroup.totalAssignedAmount,
+			(acc, categoryGroup) => acc + categoryGroup.getMonthAssignmentAmount(month),
 			0
 		);
 	}
 
-	public get monthlyUsedAmount(): number {
+	public getMonthUsedAmount(month: appDayjs.Dayjs): number {
 		return this.categoryGroups.reduce(
-			(acc, categoryGroup) => acc + categoryGroup.totalUsedAmount,
+			(acc, categoryGroup) => acc + categoryGroup.getMonthUsedAmount(month),
 			0
 		);
+	}
+
+	public getMonthAssignableAmount(month: appDayjs.Dayjs): number {
+		return this.currentBalance - this.getMonthAssignedAmount(month);
 	}
 
 	public get currentBalance(): number {
-		return this.accounts.reduce((sum, account) => sum + account.balance, 0);
-	}
+		return this.accounts.reduce((sum, account) => {
+			if (account.type !== 'CREDIT_CARD') {
+				return sum + account.balance;
+			}
 
-	public get monthlyAssignableAmount(): number {
-		return this.currentBalance - this.monthlyAssignedAmount;
+			return sum;
+		}, 0);
 	}
 }

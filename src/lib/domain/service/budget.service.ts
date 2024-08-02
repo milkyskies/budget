@@ -7,6 +7,7 @@ import { EntryEntity } from '../entity/entry.entity';
 import { EntryItemEntity } from '../entity/entry-item.entity';
 import { createId } from '@paralleldrive/cuid2';
 import { ExternalPartyEntity } from '../entity/external-party.entity';
+import { AssignmentEntity } from '../entity/assignment.entity';
 
 export class BudgetService {
 	private constructor(private readonly prismaClient: PrismaClient) {}
@@ -28,7 +29,8 @@ export class BudgetService {
 					include: {
 						categories: {
 							include: {
-								entryItems: true
+								entryItems: true,
+								assignments: true
 							}
 						}
 					}
@@ -58,7 +60,11 @@ export class BudgetService {
 					EntryItemEntity.fromPrisma({ prismaEntryItem: entry })
 				);
 
-				return CategoryEntity.fromPrisma({ category, entryItems });
+				const assignments = category.assignments.map((assignment) =>
+					AssignmentEntity.fromPrisma({ prismaAssignment: assignment })
+				);
+
+				return CategoryEntity.fromPrisma({ category, entryItems, assignments });
 			});
 
 			return CategoryGroupEntity.fromPrisma({

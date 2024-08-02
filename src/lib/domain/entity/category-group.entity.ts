@@ -57,15 +57,18 @@ export class CategoryGroupEntity {
 		};
 	}
 
-	public get totalAssignedAmount(): number {
-		return this.categories.reduce((sum, category) => sum + category.assignedAmount, 0);
+	public getMonthAssignmentAmount(month: appDayjs.Dayjs): number {
+		return this.categories.reduce(
+			(sum, category) => sum + category.getMonthAssignmentAmount(month),
+			0
+		);
 	}
 
-	public get totalUsedAmount(): number {
-		return this.categories.reduce((sum, category) => sum + category.usedAmount, 0);
+	public getMonthUsedAmount(month: appDayjs.Dayjs): number {
+		return this.categories.reduce((sum, category) => sum + category.getMonthUsedAmount(month), 0);
 	}
 
-	public get totalRemainingAmount(): number {
-		return this.totalAssignedAmount - this.totalUsedAmount;
+	public getMonthRemainingAmount(month: appDayjs.Dayjs): number {
+		return this.getMonthAssignmentAmount(month) - this.getMonthUsedAmount(month);
 	}
 }
