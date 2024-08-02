@@ -1,11 +1,11 @@
 -- CreateEnum
-CREATE TYPE "EntryType" AS ENUM ('EXPENSE', 'INCOME', 'TRANSFER');
+CREATE TYPE "entry_type" AS ENUM ('EXPENSE', 'INCOME', 'TRANSFER');
 
 -- CreateEnum
-CREATE TYPE "EntrySystemType" AS ENUM ('NORMAL', 'INITIAL_BALANCE');
+CREATE TYPE "entry_system_type" AS ENUM ('NORMAL', 'INITIAL_BALANCE');
 
 -- CreateEnum
-CREATE TYPE "AccountType" AS ENUM ('CASH', 'CHECKING', 'SAVINGS', 'CREDIT_CARD');
+CREATE TYPE "account_type" AS ENUM ('CASH', 'CHECKING', 'SAVINGS', 'CREDIT_CARD');
 
 -- CreateTable
 CREATE TABLE "users" (
@@ -56,7 +56,6 @@ CREATE TABLE "categories" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "category_group_id" TEXT NOT NULL,
-    "assigned_amount" INTEGER NOT NULL DEFAULT 0,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -66,8 +65,8 @@ CREATE TABLE "categories" (
 -- CreateTable
 CREATE TABLE "entries" (
     "id" TEXT NOT NULL,
-    "type" "EntryType" NOT NULL,
-    "system_type" "EntrySystemType" NOT NULL DEFAULT 'NORMAL',
+    "type" "entry_type" NOT NULL,
+    "system_type" "entry_system_type" NOT NULL DEFAULT 'NORMAL',
     "date" TIMESTAMP(3) NOT NULL,
     "memo" TEXT NOT NULL,
     "account_id" TEXT NOT NULL,
@@ -106,7 +105,7 @@ CREATE TABLE "external_parties" (
 CREATE TABLE "accounts" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "type" "AccountType" NOT NULL,
+    "type" "account_type" NOT NULL,
     "budget_id" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
@@ -114,8 +113,26 @@ CREATE TABLE "accounts" (
     CONSTRAINT "accounts_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "assignments" (
+    "id" TEXT NOT NULL,
+    "category_id" TEXT NOT NULL,
+    "amount" INTEGER NOT NULL,
+    "month" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "assignments_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
+
+-- CreateIndex
+CREATE INDEX "assignments_category_id_month_idx" ON "assignments"("category_id", "month");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "assignments_category_id_month_key" ON "assignments"("category_id", "month");
 
 -- AddForeignKey
 ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -149,3 +166,6 @@ ALTER TABLE "external_parties" ADD CONSTRAINT "external_parties_budget_id_fkey" 
 
 -- AddForeignKey
 ALTER TABLE "accounts" ADD CONSTRAINT "accounts_budget_id_fkey" FOREIGN KEY ("budget_id") REFERENCES "budgets"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "assignments" ADD CONSTRAINT "assignments_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
