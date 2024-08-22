@@ -2,17 +2,29 @@
 	import { formatCurrency } from 'src/lib/app/presentation/format-currency.util';
 	import { BudgetEntity } from 'src/lib/domain/entity/budget.entity';
 	import type { PageServerData } from './$types';
+	import { appDayjs } from 'src/lib/app/time/dayjs';
+	import { getSvetchClient } from 'src/lib/app/api/svetch.client';
+	import { invalidateAll } from '$app/navigation';
+	import Modal from 'src/ui/common/modal.svelte';
+	import YenInput from 'src/ui/common/yen-input.svelte';
+	import { CategoryEntity } from 'src/lib/domain/entity/category.entity';
 
 	export let data: PageServerData;
 
+	const now = appDayjs();
+
 	$: budget = BudgetEntity.create(data.budget);
 
-	$: readyToAssign = budget.monthlyAssignableAmount;
+	$: readyToAssign = budget.getMonthAssignableAmount(now);
 	$: categoryGroups = budget.categoryGroups;
 	$: availableInJune = 217272;
 	$: accounts = budget.accounts;
 
-	let openModal = 'NONE' as 'NEW_ACCOUNT' | 'EDIT_ACCOUNT' | 'NONE';
+	let openModal = 'NONE' as 'SET_ASSIGNMENT' | 'NONE';
+
+	// For assignment
+	let selectedCategory: CategoryEntity;
+	let assignmentAmount = 0;
 
 	function changeMonth(direction: 'prev' | 'next') {
 		throw new Error('Not implemented');
@@ -20,6 +32,35 @@
 
 	function formatUsedAmount(amount: number) {
 		return amount > 0 ? `-${formatCurrency(amount)}` : formatCurrency(amount);
+	}
+
+	function handleClickAssignment(category: CategoryEntity) {
+		selectedCategory = category;
+		openModal = 'SET_ASSIGNMENT';
+	}
+
+	async function setAssignment() {
+		const apiClient = getSvetchClient();
+
+		const response = await apiClient.post('api/budgets/:budgetId/assignments', {
+			body: {
+				amount: assignmentAmount,
+				categoryId: selectedCategory.id,
+				date: now.toDate()
+			},
+			path: {
+				budgetId: budget.id
+			}
+		});
+
+		if (!response.ok) {
+			throw new Error('Failed to set assignment');
+		}
+
+		await invalidateAll();
+
+		assignmentAmount = 0;
+		openModal = 'NONE';
 	}
 </script>
 
@@ -60,27 +101,32 @@
 				{#each categoryGroups as categoryGroup}
 					<tr class="border-t">
 						<td class="py-3 px-4 font-medium text-gray-800">{categoryGroup.name}</td>
-						<td class="py-3 px-4 text-right">{formatCurrency(categoryGroup.totalAssignedAmount)}</td
+						<td class="py-3 px-4 text-right"
+							>{formatCurrency(categoryGroup.getMonthAssignmentAmount(now))}</td
 						>
 						<td class="py-3 px-4 text-right hidden lg:table-cell"
-							>{formatUsedAmount(categoryGroup.totalUsedAmount)}</td
+							>{formatUsedAmount(categoryGroup.getMonthUsedAmount(now))}</td
 						>
 						<td class="py-3 px-4 text-right"
-							>{formatCurrency(categoryGroup.totalRemainingAmount)}</td
+							>{formatCurrency(categoryGroup.getMonthRemainingAmount(now))}</td
 						>
 					</tr>
 					{#each categoryGroup.categories as category}
 						<tr class="border-t border-t-gray-100">
 							<td class="py-3 px-4 pl-8 text-gray-700">{category.name}</td>
 							<td class="py-3 px-4 text-right">
-								<button class="text-blue-600 hover:text-blue-800"
-									>{formatCurrency(category.assignedAmount)}</button
+								<button
+									class="text-blue-600 hover:text-blue-800"
+									on:click={() => handleClickAssignment(category)}
+									>{formatCurrency(category.getMonthAssignmentAmount(now))}</button
 								>
 							</td>
 							<td class="py-3 px-4 text-right hidden lg:table-cell"
-								>{formatUsedAmount(category.usedAmount)}</td
+								>{formatUsedAmount(category.getMonthUsedAmount(now))}</td
 							>
-							<td class="py-3 px-4 text-right">{formatCurrency(category.remainingAmount)}</td>
+							<td class="py-3 px-4 text-right"
+								>{formatCurrency(category.getMonthRemainingAmount(now))}</td
+							>
 						</tr>
 					{/each}
 				{/each}
@@ -110,3 +156,28 @@
 		</div>
 	</div>
 </aside>
+
+{#if openModal === 'SET_ASSIGNMENT'}
+	<Modal onClose={() => (openModal = 'NONE')} title="{selectedCategory.name}に割り当て">
+		<form on:submit|preventDefault={setAssignment} class="space-y-4">
+			<div>
+				<label for="assignment-amount" class="block text-sm font-medium mb-1 text-gray-700">
+					割り当て金額
+				</label>
+				<div class="relative">
+					<span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+						<span>¥</span>
+					</span>
+					<YenInput
+						id="assignment-amount"
+						bind:value={assignmentAmount}
+						placeholder="割り当て金額を入力"
+					/>
+				</div>
+			</div>
+			<button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+				設定
+			</button>
+		</form>
+	</Modal>
+{/if}
