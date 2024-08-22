@@ -162,9 +162,16 @@
 											</div>
 										{/each}
 									</div>
-									{#if entry.memo}
-										<p class="text-gray-600 text-xs mt-3">{entry.memo}</p>
-									{/if}
+									<div class="flex justify-between mt-3 gap-2">
+										<div>
+											{#if entry.memo}
+												<p class="text-gray-600 text-xs">{entry.memo}</p>
+											{/if}
+										</div>
+										<div>
+											<p class="text-gray-600 text-xs break-keep">{entry.account?.name}</p>
+										</div>
+									</div>
 								</div>
 							</button>
 						{:else if entry.type === 'INCOME'}
