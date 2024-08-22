@@ -29,4 +29,7 @@
 	</div>
 {/if}
 
+<p class="text-red-500 text-center py-2 sticky top-0 font-bold bg-slate-100 hidden lg:block">
+	PCのレイアウトはまだです。
+</p>
 <slot />
