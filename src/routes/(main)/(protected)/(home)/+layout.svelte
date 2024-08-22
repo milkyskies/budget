@@ -33,7 +33,7 @@
 	<aside class="w-64 bg-gray-50 text-gray-800 p-4 hidden lg:block border-r">
 		<div class="mb-8">
 			<h1 class="text-xl font-bold text-gray-900">{budget.name}</h1>
-			<p class="text-sm text-gray-600">cr.heisei12@gmail.com</p>
+			<p class="text-sm text-gray-600">example@email.com</p>
 		</div>
 		<nav>
 			{#each NAV_ITEMS as { href, label }}
