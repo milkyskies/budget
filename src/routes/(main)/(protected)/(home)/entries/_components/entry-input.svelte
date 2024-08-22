@@ -1,17 +1,16 @@
 <script lang="ts">
 	import { appDayjs } from '$lib/app/time/dayjs';
 	import { EntryType } from '@prisma/client';
+	import type { UpsertEntryDto } from 'src/lib/domain/dto/entry.dto';
 	import type { AccountEntity } from 'src/lib/domain/entity/account.entity';
 	import type { CategoryGroupEntity } from 'src/lib/domain/entity/category-group.entity';
 	import type { CategoryEntity } from 'src/lib/domain/entity/category.entity';
 	import type { EntryEntity } from 'src/lib/domain/entity/entry.entity';
-	import type { UpsertEntryDto } from 'src/lib/domain/dto/entry.dto';
+	import type { ExternalPartyEntity } from 'src/lib/domain/entity/external-party.entity';
+	import type { Item } from 'src/ui/common/searchable-select';
+	import SearchableSelect from 'src/ui/common/searchable-select.svelte';
 	import { fade, slide } from 'svelte/transition';
 	import YenInput from '../../../../../../ui/common/yen-input.svelte';
-	import type { ExternalPartyEntity } from 'src/lib/domain/entity/external-party.entity';
-	import SearchableSelect from 'src/ui/common/searchable-select.svelte';
-	import type { Item } from 'src/ui/common/searchable-select';
-	import Modal from 'src/ui/common/modal.svelte';
 
 	export let categoryGroups: CategoryGroupEntity[];
 	export let externalParties: ExternalPartyEntity[];
@@ -101,6 +100,8 @@
 				open: false;
 		  } = { open: false };
 
+	let externalPartyInput = '';
+
 	$: currentlySelectedEntryItem = categoryPanelState.open
 		? entryItems[categoryPanelState.entryItemIndex]
 		: undefined;
@@ -140,10 +141,19 @@
 			};
 
 			const upsertEntryDto = (() => {
-				if (selectedExternalParty.type === 'NEW') {
+				if (
+					selectedExternalParty.type === 'NEW' ||
+					(externalPartyInput &&
+						!externalParties.some(
+							(ep) => ep.name.toLowerCase() === externalPartyInput.toLowerCase()
+						))
+				) {
 					return {
 						...baseUpsertEntryDto,
-						newExternalPartyName: selectedExternalParty.newName
+						newExternalPartyName:
+							selectedExternalParty.type === 'NEW'
+								? selectedExternalParty.newName
+								: externalPartyInput
 					};
 				} else if (selectedExternalParty.type === 'EXISTING') {
 					return {
@@ -205,6 +215,8 @@
 				existingId: item.id
 			};
 		}
+
+		externalPartyInput = item.name;
 	}
 
 	function selectEntryType(type: EntryType) {
@@ -213,6 +225,17 @@
 		categoryPanelState = { open: false };
 
 		entryType = type;
+	}
+
+	function handleExternalPartyInputChange(value: string) {
+		externalPartyInput = value;
+
+		if (value && !externalParties.some((ep) => ep.name.toLowerCase() === value.toLowerCase())) {
+			selectedExternalParty = {
+				type: 'NEW',
+				newName: value
+			};
+		}
 	}
 </script>
 
@@ -278,6 +301,7 @@
 					placeholder="検索または新規作成"
 					initialValue={initialEntry?.externalParty?.name}
 					onSelect={handleExternalPartySelect}
+					onInputChange={handleExternalPartyInputChange}
 				/>
 			{/key}
 		</div>

@@ -5,6 +5,7 @@
 	export let placeholder = 'Search or create...';
 	export let initialValue = '';
 	export let onSelect: (item: Item) => void;
+	export let onInputChange: (value: string) => void = () => {};
 
 	let searchTerm = initialValue ?? '';
 	let showDropdown = false;
@@ -24,6 +25,7 @@
 
 	function handleInput() {
 		showDropdown = true;
+		onInputChange(searchTerm);
 	}
 
 	function handleFocus() {
