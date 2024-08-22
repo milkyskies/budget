@@ -43,12 +43,9 @@ RUN npx prisma generate
 # Copy application code
 COPY --link . .
 
-# Build application
-RUN pnpm run build
-
-# Remove development dependencies
-RUN pnpm prune --prod
-
+# Build application, remove development dependencies
+RUN pnpm run build && \
+    pnpm prune --prod
 
 # Final stage for app image
 FROM base
